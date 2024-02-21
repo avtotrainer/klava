@@ -8,46 +8,59 @@ import sys
 import termios
 import tty
 
+GREEN_BACKGROUND =   "\033[42m" # ტექსტი მწვანედ
+RED_TEXT = "\033[91m"  # ტექსტი წითლად
+BOLD_TEXT = "\033[1m"  # მსხვილი სიმბოლოები
+YELLOW_TEXT = "\033[93m"  # ტექსტი ყვითლად
+RESET_TEXT = "\033[0m"  # ფერების გარესეტება
+
 def getch():
-    fd = sys.stdin.fileno()
-    old_settings = termios.tcgetattr(fd)
+    """
+     სიმბოლოს წაკითხვა კლავიტურიდან
+    """
+    file_no = sys.stdin.fileno()
+    old_settings = termios.tcgetattr(file_no)
     try:
         tty.setraw(sys.stdin.fileno())
-        ch = sys.stdin.read(1)
+        read_char = sys.stdin.read(1)
     finally:
-        termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
-    return ch
+        termios.tcsetattr(file_no, termios.TCSADRAIN, old_settings)
+    return read_char
 
 def load_sequences(filename):
+    """
+     სტრიქონების წაკითხვა ფაილიდან
+
+    """
     with open(filename, 'r') as file:
         return [line.rstrip('\n') for line in file]
 
 def save_level(level):
+    """
+        ლეველის ჩაწერა
+    """
     with open('score.txt', 'a') as file:  # Используем режим 'a' для добавления
         file.write(f"შეფასება: {level}\n")
 
 
 def run_sequence_test(sequence):
+    """
+        ტრენაჟორი
+    """
+    print(f"ᲓᲐᲕᲐᲚᲔᲑᲐ - დაბეჯდე:{RED_TEXT} {BOLD_TEXT} {GREEN_BACKGROUND}{sequence.replace(' ', '␣')}{RESET_TEXT} - ␣ სიმბოლო არის პრობელი (Space)")
+    print(f"გამოსასვლელად უდა დაჭირო {RED_TEXT} <Esc> {RESET_TEXT} ")
     repeated_sequence = 80 // len(sequence)  # 10
     extended_sequence = sequence * repeated_sequence  # 20
-    green_background =   "\033[42m"# ANSI код для зеленого цвета
-    red_text = "\033[91m"  # ANSI код для красного цвета
-    bold_text = "\033[1m"  # Жирный
-    yellow_text = "\033[93m"  # Желтый для фона
-    reset_text = "\033[0m"  # Сброс цвета к стандартному
-
-    print(f"დავალება - დაბეჯდე:{red_text}{bold_text} {green_background}{sequence.replace(' ', '␣')}{reset_text} - ␣ სიმბოლო არის პრობელი (Space)")
-    print(f"გამოსასვლელად უდა დაჭირო {red_text} <Esc> {reset_text}-ს.")
     user_input = ''
     for expected_char in extended_sequence:
         char = getch()
         if ord(char) == 27:  # ASCII код для <Esc>
-            print("\nპროგრამიდან გასვლა.")
+            print("\nᲞᲠᲝᲒᲠᲐᲛᲘᲓᲐᲜ ᲒᲐᲡᲕᲚᲐ.")
             sys.exit(0)
         sys.stdout.write(char)
         sys.stdout.flush()
         if char != expected_char:
-            print("\nშეცდომა. მისია ჩაიშალა.")
+            print("\nᲨᲔᲪᲓᲝᲛᲐ: მისია ჩაიშალა.")
             return False
     return True
 def find_max_level(filename='score.txt'):
