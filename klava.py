@@ -106,13 +106,14 @@ if __name__ == '__main__':
 
     max_level = find_max_level()
     for i,sequence in enumerate(sequences):
+        if len(sequence) == 0:
+            print("\nსავარჯიშოები ამით ამოწურულია, შენი შეფასება ათიანი!")
+            sys.exit(0)
         if i >= max_level:
             while not run_sequence_test(sequence):
                 print("\n დაიწყე თავიდან.")
 
             print("\nგილოცავ, მისია გავლილია!")
             save_level(i + 1)
-            if i == len(sequences) - 1:
-                print("\nსავარჯიშოები ამით ამოწურულია, შენი შეფასება ათიანი!")
-            elif input("'გადავიდეთ შემდეგზე? (Y/n) ") != 'y':
+            if input("'გადავიდეთ შემდეგზე? (Y/n) ") != 'y':
                 sys.exit(0)
