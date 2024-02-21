@@ -7,6 +7,12 @@
 import sys
 import termios
 import tty
+ART_LOADED = False
+try:
+    import art
+    ART_LOADED = True
+except ImportError:
+    pass
 
 GREEN_BACKGROUND =   "\033[42m" # ტექსტი მწვანედ
 RED_TEXT = "\033[91m"  # ტექსტი წითლად
@@ -39,16 +45,27 @@ def save_level(level):
     """
         ლეველის ჩაწერა
     """
-    with open('score.txt', 'a') as file:  # Используем режим 'a' для добавления
+    with open('score.txt', 'a') as file:  # Иa' для добавления
         file.write(f"შეფასება: {level}\n")
 
 
 def run_sequence_test(sequence):
     """
         ტრენაჟორი
+
     """
+    global ART_LOADED
+    if  ART_LOADED:
+        print("\033[2J","\033[4;1H", end="")
+        # print(art.text2art(sequence))
+        print(art.text2art(sequence.replace(' ', '      ')*2))
+    else:
+        print("\033[2J", end="")
+    print("\033[14;10H", end="")
     print(f"ᲓᲐᲕᲐᲚᲔᲑᲐ - დაბეჯდე:{RED_TEXT} {BOLD_TEXT} {GREEN_BACKGROUND}{sequence.replace(' ', '␣')}{RESET_TEXT} - ␣ სიმბოლო არის პრობელი (Space)")
+    print("\033[24;10H", end="")
     print(f"გამოსასვლელად უდა დაჭირო {RED_TEXT} <Esc> {RESET_TEXT} ")
+    print("\033[18;10H", end="")
     repeated_sequence = 80 // len(sequence)  # 10
     extended_sequence = sequence * repeated_sequence  # 20
     user_input = ''
