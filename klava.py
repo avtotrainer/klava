@@ -59,6 +59,8 @@ def run_sequence_test(sequence):
         print("\033[2J","\033[4;1H", end="")
         # print(art.text2art(sequence))
         print(art.text2art(sequence.replace(' ', '      ')*2))
+        print("\033[26;1H", end="")
+        print(art.text2art(str(i)))
     else:
         print("\033[2J", end="")
     print("\033[14;10H", end="")
@@ -107,6 +109,7 @@ if __name__ == '__main__':
     max_level = find_max_level()
     for i,sequence in enumerate(sequences):
         if len(sequence) == 0:
+            
             print("\nსავარჯიშოები ამით ამოწურულია, შენი შეფასება ათიანი!")
             sys.exit(0)
         if i >= max_level:
