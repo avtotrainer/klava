@@ -12,48 +12,29 @@ DARK = "#000000"
 class Trainer:
     def __init__(self, root):
         self.root = root
-
-        # --- KIOSK რეჟიმი: მთელი ეკრანი, ზემოთ ყოფნა, კურსორის დამალვა ---
         root.attributes("-fullscreen", True)
-        root.attributes("-topmost", True)
-        root.focus_force()
-        root.config(cursor="none")  # მაუსის ისარი დაიმალოს
 
-        # ფანჯრის დახურვა (X) გათიშული
-        root.protocol("WM_DELETE_WINDOW", lambda: None)
-
-        # კლავიშების ბლოკირება
-        self.block_system_keys()
-
-        # --- CANVAS ---
         self.canvas = tk.Canvas(root, bg="white")
         self.canvas.pack(fill="both", expand=True)
 
-        self.width = self.canvas.winfo_screenwidth()
-        self.height = self.canvas.winfo_screenheight()
-
-        # მაუსის ცენტრში დაბრუნების ციკლი
-        self.mouse_lock_off = False
-        self.center_mouse()
-
-        # --- წინადადებები ---
+        # SENTENCES
         self.sentences = self.load_sentences()
         self.sentence_idx = 0
 
         self.current_sentence = self.sentences[self.sentence_idx]
         self.letters = list(self.current_sentence)
 
-        # --- თამაშის მდგომარეობა ---
+        # STATE
         self.pos = 0
         self.score = 0
         self.running = True
 
-        # --- ტაიმერი ---
+        # TIMER
         self.timer_started = False
         self.start_time = None
         self.timer_id = None
 
-        # --- UI ობიექტები ---
+        # UI DATA
         self.text_ids = []
         self.key_boxes = {}
         self.target = None
@@ -62,60 +43,18 @@ class Trainer:
         self.score_display = None
         self.result_display = None
 
-        # --- გამოსვლის კონტროლი ---
-        self.allow_exit = False
-        self.exit_button = None
-
-        # --- UI აგება ---
+        # DRAW
         self.draw_sentence()
         self.draw_keyboard()
         self.draw_score_timer()
-        self.draw_exit()  # თავიდან დამალულია
+        self.draw_exit()
 
         self.set_target()
 
         root.bind("<Key>", self.on_key)
 
     # ----------------------------------------------------------
-    # სისტემური კლავიშების ბლოკი
-    # ----------------------------------------------------------
-    def block_system_keys(self):
-        def block(event):
-            return "break"
-
-        bad_keys = [
-            "<Alt-F4>",
-            "<Alt-Tab>",
-            "<Escape>",
-            "<Control-q>",
-            "<Control-w>",
-            "<Super_L>",
-            "<Super_R>",
-            "<F11>",
-        ]
-
-        for key in bad_keys:
-            self.root.bind(key, block)
-
-    # ----------------------------------------------------------
-    # მაუსის ცენტრში დაბრუნება (soft lock)
-    # ----------------------------------------------------------
-    def center_mouse(self):
-        """ცდილობს მაუსი ცენტრში დააბრუნოს ყოველ 0.5 წამში."""
-        try:
-            # warp=True – Tk-ს ეუბნება მაუსის გადატანას აღნიშნულ კოორდინატებზე
-            self.root.event_generate(
-                "<Motion>", warp=True, x=self.width // 2, y=self.height // 2
-            )
-        except tk.TclError:
-            # თუ გარემოში warp არ მუშაობს, უბრალოდ გამოტოვე
-            pass
-
-        if not self.mouse_lock_off:
-            self.root.after(500, self.center_mouse)
-
-    # ----------------------------------------------------------
-    # წინადადებების ჩატვირთვა
+    # LOAD SENTENCES
     # ----------------------------------------------------------
     def load_sentences(self):
         try:
@@ -126,14 +65,19 @@ class Trainer:
             return ["HELLO WORLD"]
 
     # ----------------------------------------------------------
-    # წინადადების დახატვა
+    # DRAW SENTENCE WITH GOOD SPACING
     # ----------------------------------------------------------
     def draw_sentence(self):
+        width = self.canvas.winfo_screenwidth()
         y = 130
 
-        spacing = min(70, max(40, self.width * 0.75 / len(self.letters)))
+        # bigger spacing
+        min_space = 40
+        max_space = 70
+        spacing = min(max_space, max(min_space, width * 0.75 / len(self.letters)))
+
         total_width = len(self.letters) * spacing
-        start_x = self.width / 2 - total_width / 2
+        start_x = width / 2 - total_width / 2
 
         for i, ch in enumerate(self.letters):
             display = ch if ch != " " else " "
@@ -146,51 +90,48 @@ class Trainer:
             )
             self.text_ids.append(tid)
 
+    # ----------------------------------------------------------
+    # DARKEN LETTER
+    # ----------------------------------------------------------
     def shade(self, index):
         self.canvas.itemconfig(self.text_ids[index], fill=DARK)
 
     # ----------------------------------------------------------
-    # EXIT ღილაკი (თვიდან დამალული)
+    # EXIT BUTTON
     # ----------------------------------------------------------
     def draw_exit(self):
-        self.exit_button = tk.Button(
+        width = self.canvas.winfo_screenwidth()
+        btn = tk.Button(
             self.root,
             text="EXIT",
             font=("Arial", 22, "bold"),
             bg="red",
             fg="white",
-            command=self.safe_exit,
+            command=self.root.destroy,
         )
-        self.exit_button.place_forget()
-
-    def safe_exit(self):
-        if self.allow_exit:
-            # მაუსის ლუპი შევაჩეროთ, mainloop დაიხურება
-            self.mouse_lock_off = True
-            self.root.destroy()
+        btn.place(x=width - 150, y=20, width=120, height=50)
 
     # ----------------------------------------------------------
-    # ქულები + ტაიმერი
+    # TIMER & SCORE
     # ----------------------------------------------------------
     def draw_score_timer(self):
+        width = self.canvas.winfo_screenwidth()
+        height = self.canvas.winfo_screenheight()
+
         self.timer_display = self.canvas.create_text(
-            120, self.height - 130, text="0", font=("Arial", 40, "bold"), fill="blue"
+            120, height - 130, text="0", font=("Arial", 40, "bold"), fill="blue"
         )
 
         self.score_display = self.canvas.create_text(
-            self.width - 120,
-            self.height - 130,
+            width - 120,
+            height - 130,
             text="0",
             font=("Arial", 40, "bold"),
             fill="green",
         )
 
         self.result_display = self.canvas.create_text(
-            self.width / 2,
-            self.height - 80,
-            text="",
-            font=("Arial", 28, "bold"),
-            fill="purple",
+            width / 2, height - 80, text="", font=("Arial", 28, "bold"), fill="purple"
         )
 
     def start_timer(self):
@@ -205,7 +146,7 @@ class Trainer:
         self.canvas.itemconfig(self.score_display, text=str(self.score))
 
     # ----------------------------------------------------------
-    # კლავიატურის დახატვა
+    # KEYBOARD
     # ----------------------------------------------------------
     def round_rect(self, x1, y1, x2, y2, r=20, **kw):
         pts = [
@@ -237,14 +178,18 @@ class Trainer:
         return self.canvas.create_polygon(pts, smooth=True, **kw)
 
     def draw_keyboard(self):
-        key_w = self.width / 12
-        key_h = self.height / 8
-        gap = key_w * 0.12
-        y0 = self.height / 3
+        width = self.canvas.winfo_screenwidth()
+        height = self.canvas.winfo_screenheight()
 
+        key_w = width / 12
+        key_h = height / 8
+        gap = key_w * 0.12
+        y0 = height / 3
+
+        # letters
         for row_i, row in enumerate(KEYBOARD):
             row_w = len(row) * (key_w + gap)
-            x0 = (self.width - row_w) / 2
+            x0 = (width - row_w) / 2
 
             for col_i, ch in enumerate(row):
                 x1 = x0 + col_i * (key_w + gap)
@@ -255,17 +200,19 @@ class Trainer:
                 rect = self.round_rect(
                     x1, y1, x2, y2, r=18, fill="#e8e8e8", outline="#333", width=3
                 )
-                txt = self.canvas.create_text(
+
+                text = self.canvas.create_text(
                     (x1 + x2) / 2,
                     (y1 + y2) / 2,
                     text="",
                     font=("Arial", int(key_h * 0.4), "bold"),
                 )
-                self.key_boxes[ch] = (rect, txt)
 
-        # SPACE
+                self.key_boxes[ch] = (rect, text)
+
+        # SPACE BAR
         space_w = key_w * 5.5
-        x1 = (self.width - space_w) / 2
+        x1 = (width - space_w) / 2
         x2 = x1 + space_w
         y1 = y0 + 3 * (key_h + gap)
         y2 = y1 + key_h
@@ -273,16 +220,16 @@ class Trainer:
         rect = self.round_rect(
             x1, y1, x2, y2, r=18, fill="#e8e8e8", outline="#333", width=3
         )
-        txt = self.canvas.create_text(
+        text = self.canvas.create_text(
             (x1 + x2) / 2,
             (y1 + y2) / 2,
             text="",
             font=("Arial", int(key_h * 0.4), "bold"),
         )
-        self.key_boxes[" "] = (rect, txt)
+        self.key_boxes[" "] = (rect, text)
 
     # ----------------------------------------------------------
-    # ტარგეტ ასო
+    # SET NEXT TARGET
     # ----------------------------------------------------------
     def set_target(self):
         if self.pos >= len(self.letters):
@@ -293,15 +240,15 @@ class Trainer:
         rect, txt = self.key_boxes[self.target]
 
         shown = "⎵" if self.target == " " else self.target
+
         self.canvas.itemconfig(rect, fill="yellow")
         self.canvas.itemconfig(txt, text=shown)
 
     # ----------------------------------------------------------
-    # ერთი წინადადების დასრულება
+    # FINISH SENTENCE
     # ----------------------------------------------------------
     def finish_sentence(self):
         self.running = False
-
         if self.timer_id:
             self.root.after_cancel(self.timer_id)
 
@@ -311,49 +258,48 @@ class Trainer:
             self.result_display, text=f"დრო: {elapsed}   ქულები: {self.score}"
         )
 
-        # გადავიდეთ შემდეგ წინადადებაზე თუ არის
         self.root.after(1200, self.load_next_sentence)
 
     def load_next_sentence(self):
         self.sentence_idx += 1
 
         if self.sentence_idx >= len(self.sentences):
-            # ყველა წინადადება დასრულდა → ვრთავთ EXIT-ს
             self.canvas.itemconfig(
                 self.result_display, text="ყველა წინადადება დასრულდა!"
             )
-            self.allow_exit = True
-            self.exit_button.place(x=self.width - 150, y=20, width=120, height=50)
             return
 
-        # ახალი წინადადება
+        # RESET EVERYTHING
         self.current_sentence = self.sentences[self.sentence_idx]
         self.letters = list(self.current_sentence)
         self.pos = 0
         self.running = True
         self.timer_started = False
         self.canvas.itemconfig(self.timer_display, text="0")
-        self.canvas.itemconfig(self.result_display, text="")
 
-        # წინა ასოების მოშლა
+        # clear old letters
         for tid in self.text_ids:
             self.canvas.delete(tid)
         self.text_ids = []
+
+        self.canvas.itemconfig(self.result_display, text="")
 
         self.draw_sentence()
         self.set_target()
 
     # ----------------------------------------------------------
-    # უსაფრთხო reset შეცდომის შემდეგ
+    # SAFE RESET FUNCTION — FIXES THE BUG
     # ----------------------------------------------------------
     def safe_reset(self, rect_id, txt_id, expected_color):
         current = self.canvas.itemcget(rect_id, "fill")
+
+        # reset only if still red
         if current == "red":
             self.canvas.itemconfig(rect_id, fill=expected_color)
             self.canvas.itemconfig(txt_id, text="")
 
     # ----------------------------------------------------------
-    # Key handler
+    # KEY HANDLER
     # ----------------------------------------------------------
     def on_key(self, event):
         if not self.running:
@@ -366,13 +312,13 @@ class Trainer:
         if ch not in self.key_boxes:
             return
 
-        # პირველი სწორი კლავიშისას ვიწყებთ ტაიმერს
+        # START TIMER ON FIRST CORRECT
         if not self.timer_started and ch == self.letters[0]:
             self.timer_started = True
             self.start_time = time.time()
             self.start_timer()
 
-        # შეცდომა
+        # WRONG KEY
         if ch != self.target:
             self.score -= 3
             self.update_score()
@@ -383,12 +329,13 @@ class Trainer:
             self.canvas.itemconfig(rect, fill="red")
             self.canvas.itemconfig(txt, text=ch if ch != " " else "⎵")
 
+            # SAFE RESET → no more disappearing keyboard
             self.root.after(
                 200, lambda r=rect, t=txt, oc=old_color: self.safe_reset(r, t, oc)
             )
             return
 
-        # სწორი
+        # CORRECT KEY
         self.score += 1
         self.update_score()
 
@@ -409,8 +356,7 @@ class Trainer:
         )
 
 
-# --- RUN ---
-if __name__ == "__main__":
-    root = tk.Tk()
-    Trainer(root)
-    root.mainloop()
+# RUN
+root = tk.Tk()
+Trainer(root)
+root.mainloop()
