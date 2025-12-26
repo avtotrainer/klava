@@ -1,103 +1,90 @@
 # logic/engine.py
+# KLAVA — Typing logic engine
 
 
 class TypingEngine:
     """
-    ბეჭვდის ლოგიკის ძრავა.
-    UI-ს არაფერი ესმის.
-    ზუსტად იმეორებს საბაზო Trainer-ის ქცევას.
+    ბეჭდვის ლოგიკა.
+    UI არაფერი იცის.
     """
 
-    def __init__(self, source: str):
+    def __init__(self, path: str):
         """
-        ინიციალიზაცია.
-
-        :param source: sentences.txt-ის ფაილის მისამართი
-        """
-        self.sentences = self._load_sentences(source)
-        self.sentence_idx = 0
-
-        self._load_current_sentence()
-
-        self.score = 0
-
-    # --------------------------------------------------
-    #   LOAD
-    # --------------------------------------------------
-    def _load_sentences(self, path: str) -> list[str]:
-        """
-        კითხულობს წინადადებებს ფაილიდან.
+        წინადადებების ჩატვირთვა ფაილიდან.
         """
         try:
             with open(path, encoding="utf-8") as f:
-                lines = [l.strip().upper() for l in f if l.strip()]
-                return lines if lines else ["HELLO WORLD"]
-        except Exception:
-            return ["HELLO WORLD"]
+                self.sentences = [line.strip().upper() for line in f if line.strip()]
+        except FileNotFoundError:
+            self.sentences = ["HELLO WORLD"]
 
-    def _load_current_sentence(self) -> None:
+        self.index = 0
+        self._load_current_sentence()
+
+    # --------------------------------------------------
+    # შიდა ჩატვირთვა
+    # --------------------------------------------------
+    def _load_current_sentence(self):
         """
-        ტვირთავს მიმდინარე წინადადებას.
+        იტვირთავს მიმდინარე წინადადებას index-ის მიხედვით.
         """
-        self.letters = list(self.sentences[self.sentence_idx])
+        self.current_sentence = self.sentences[self.index]
+        self.letters = list(self.current_sentence)
         self.pos = 0
-        self.total = len(self.letters)
+        self.finished = False
 
     # --------------------------------------------------
-    #   API EXPECTED BY Trainer
+    # API
     # --------------------------------------------------
+    @property
+    def total(self) -> int:
+        """
+        მიმდინარე წინადადების სიგრძე.
+        """
+        return len(self.letters)
+
     def acceptable(self, ch: str) -> bool:
         """
-        ამოწმებს არის თუ არა სიმბოლო დასაშვები.
+        დასაშვები სიმბოლოების ფილტრი.
         """
-        return ch in self.letters or ch == " "
+        return isinstance(ch, str) and len(ch) == 1
 
-    def current(self) -> str | None:
+    def current_char(self) -> str:
         """
-        აბრუნებს მიმდინარე მიზნობრივ სიმბოლოს.
+        მიმდინარე სამიზნე სიმბოლო.
         """
-        if self.pos >= self.total:
-            return None
+        if self.finished or self.pos >= len(self.letters):
+            return ""
         return self.letters[self.pos]
+
+    # ბექვორდ-კომპატიბილითი Trainer-ისთვის
+    def current(self) -> str:
+        return self.current_char()
 
     def hit(self, ch: str) -> bool:
         """
-        ამუშავებს ერთ დაჭერას საბაზოს წესებით.
-
-        სწორი  → +1 ქულა, pos++
-        არასწორი → -3 ქულა
+        სიმბოლოზე დაჭერის დამუშავება.
         """
-        target = self.current()
-        if target is None:
+        if self.finished:
             return False
 
-        if ch == target:
-            self.score += 1
-            self.pos += 1
+        if ch != self.letters[self.pos]:
+            return False
 
-            # თუ ხაზი დასრულდა — გადავდივართ შემდეგზე
-            if self.pos >= self.total:
-                self._advance_sentence()
+        self.pos += 1
 
-            return True
+        if self.pos >= len(self.letters):
+            self.finished = True
 
-        self.score -= 3
-        return False
+        return True
 
-    def _advance_sentence(self) -> None:
+    def next_sentence(self) -> bool:
         """
-        გადადის შემდეგ წინადადებაზე, თუ არსებობს.
+        შემდეგ წინადადებაზე გადასვლა.
         """
-        if self.sentence_idx + 1 < len(self.sentences):
-            self.sentence_idx += 1
-            self._load_current_sentence()
+        self.index += 1
+        if self.index >= len(self.sentences):
+            return False
 
-    @property
-    def finished(self) -> bool:
-        """
-        დასრულებულია თუ არა მთელი დავალება.
-
-        დასრულებულია მხოლოდ მაშინ, როცა
-        ბოლო წინადადებაც ბოლომდეა აკრეფილი.
-        """
-        return self.sentence_idx == len(self.sentences) - 1 and self.pos >= self.total
+        self._load_current_sentence()
+        return True

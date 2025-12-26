@@ -1,6 +1,7 @@
 # ui/canvas.py
 # KLAVA — Canvas drawing layer
 # პასუხისმგებელია ტექსტზე, ქულებზე, დროზე და შედეგებზე
+# ლოგიკა აქ არ ითვლება — მხოლოდ ვიზუალი
 
 import tkinter as tk
 
@@ -11,7 +12,7 @@ DARK = "#000000"
 class Canvas:
     """
     Canvas UI ფენა.
-    ლოგიკა აქ არ ითვლება — მხოლოდ ვიზუალი.
+    Trainer იძახებს, Canvas ხატავს.
     """
 
     def __init__(self, root):
@@ -22,30 +23,24 @@ class Canvas:
         self.width = self.canvas.winfo_screenwidth()
         self.height = self.canvas.winfo_screenheight()
 
-        self.text_ids = []
+        # ტექსტის ID-ები (ერთი წინადადება)
+        self.text_ids: list[int] = []
 
+        # სტატუსის ელემენტები
         self.timer_display = None
         self.score_display = None
         self.result_display = None
 
     # ======================================================
-    #   კლავიატურის ვიზუალური გასუფთავება
-    # ======================================================
-    def clear_keyboard(self):
-        """
-        ასუფთავებს კლავიატურის ყველა highlight-ს.
-        გამოიყენება წინადადების შეცვლისას და reset-ზე.
-        """
-        for item in self.canvas.find_withtag("key"):
-            self.canvas.itemconfig(item, fill="#eee")
-
-    # ======================================================
-    #   წინადადების დახატვა (ძველი დიზაინი)
+    #   წინადადება
     # ======================================================
     def draw_sentence(self, letters):
         """
-        ხატავს წინადადებას ღია ფერით (PALE),
-        ზუსტად ძველი Trainer-ის ლოგიკით.
+        ხატავს წინადადებას ღია ფერით (PALE).
+
+        შენიშვნა:
+        - ძველი ტექსტი აქ არ იშლება
+        - წაშლა ხდება Trainer-იდან clear_sentence()-ით
         """
         self.text_ids.clear()
 
@@ -55,24 +50,41 @@ class Canvas:
         start_x = self.width / 2 - total / 2
 
         for i, ch in enumerate(letters):
-            display = ch if ch != " " else " "
             tid = self.canvas.create_text(
                 start_x + i * spacing,
                 y,
-                text=display,
+                text=ch if ch != " " else " ",
                 font=("Arial", 50, "bold"),
                 fill=PALE,
             )
             self.text_ids.append(tid)
 
-    def shade_letter(self, index):
-        """სწორად აკრეფილი ასოს გამუქება"""
-        self.canvas.itemconfig(self.text_ids[index], fill=DARK)
+    def clear_sentence(self):
+        """
+        შლის ეკრანზე არსებულ ყველა ასოს.
+        """
+        for tid in self.text_ids:
+            self.canvas.delete(tid)
+        self.text_ids.clear()
+
+    def shade_letter(self, index: int):
+        """
+        სწორად აკრეფილი ასოს გამუქება.
+
+        დაცვა:
+        - არასწორი index არ აგდებს პროგრამას
+        """
+        if 0 <= index < len(self.text_ids):
+            self.canvas.itemconfig(self.text_ids[index], fill=DARK)
 
     # ======================================================
-    #   ქულები + ტაიმერი
+    #   ქულები და ტაიმერი
     # ======================================================
     def draw_score_timer(self):
+        """
+        ხატავს ტაიმერს, ქულებს და შედეგის ველს.
+        იძახება ერთხელ Trainer-ის init-ში.
+        """
         self.timer_display = self.canvas.create_text(
             120,
             self.height - 130,
@@ -98,15 +110,34 @@ class Canvas:
         )
 
     def update_score(self, score):
+        """
+        ქულის განახლება.
+
+        დაცვა:
+        - თუ score_display ჯერ არ არსებობს — არაფერს ვაკეთებთ
+        """
+        if self.score_display is None:
+            return
         self.canvas.itemconfig(self.score_display, text=str(score))
 
     def update_timer(self, seconds):
+        """
+        ტაიმერის განახლება წამებში.
+
+        დაცვა:
+        - თუ timer_display ჯერ არ არსებობს — არაფერს ვაკეთებთ
+        """
+        if self.timer_display is None:
+            return
         self.canvas.itemconfig(self.timer_display, text=str(seconds))
 
     def show_result(self, text):
-        self.canvas.itemconfig(self.result_display, text=text)
+        """
+        საბოლოო შედეგის ჩვენება.
 
-    def clear_sentence(self):
-        for tid in self.text_ids:
-            self.canvas.delete(tid)
-        self.text_ids.clear()
+        დაცვა:
+        - თუ result_display ჯერ არ არსებობს — არაფერს ვაკეთებთ
+        """
+        if self.result_display is None:
+            return
+        self.canvas.itemconfig(self.result_display, text=text)
