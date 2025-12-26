@@ -23,7 +23,7 @@ class Trainer:
         root.attributes("-topmost", True)
         root.config(cursor="none")
         root.protocol("WM_DELETE_WINDOW", lambda: None)
-
+        root.bind("<Control-Shift-Alt-BackSpace>", self._force_exit)
         # LOGIC
         self.engine = TypingEngine("data/sentences.txt")
         self.progress = Progress(self.engine.total)
@@ -44,6 +44,13 @@ class Trainer:
 
         self.update_target()
 
+    def _force_exit(self, event=None):
+        """
+            საიდუმლო ავარიული გამოსვლა მასწავლებლისთვის.
+            მუშაობს კიოსკ რეჟიმშიც.
+        """
+        self.root.destroy()    
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
     # --------------------------------------------------
     # დრო
     # --------------------------------------------------
