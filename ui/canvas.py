@@ -15,6 +15,14 @@ class Canvas:
     Trainer იძახებს, Canvas ხატავს.
     """
 
+    def clear(self):
+        """
+        ეკრანის გაწმენდა.
+
+        ეს არის სტაბილური API, რომელსაც Trainer და Exercises იყენებენ.
+        """
+        self.canvas.delete("all")
+
     def __init__(self, root):
         self.root = root
         self.canvas = tk.Canvas(root, bg="white")

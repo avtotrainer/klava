@@ -1,154 +1,150 @@
 # trainer.py
-# KLAVA — Trainer (UI + Logic connector)
+# KLAVA — Application Trainer (Session Controller)
 
 import tkinter as tk
-import time
+from tkinter import messagebox
 
-from logic.engine import TypingEngine
-from logic.progress import Progress
 from ui.canvas import Canvas
 from ui.keyboard import Keyboard
+from ui.menu import AppMenu
+
+from exercises.typing import TypingExercise
 
 
 class Trainer:
     """
-    UI-სა და ლოგიკის დამაკავშირებელი.
+    Trainer — აპლიკაციის სესიის მმართველი.
+
+    პასუხისმგებელია:
+    - menu bar-ზე
+    - cover page-ზე
+    - kiosk რეჟიმზე
+    - exercise lifecycle-ზე
     """
+
+    SECRET_EXIT_COMBO = "<Control-Alt-Shift-Q>"
 
     def __init__(self, root: tk.Tk):
         self.root = root
 
-        # KIOSK MODE
-        root.attributes("-fullscreen", True)
-        root.attributes("-topmost", True)
-        root.config(cursor="none")
-        root.protocol("WM_DELETE_WINDOW", lambda: None)
-        root.bind("<Control-Shift-Alt-BackSpace>", self._force_exit)
-        # LOGIC
-        self.engine = TypingEngine("data/sentences.txt")
-        self.progress = Progress(self.engine.total)
+        # ── მდგომარეობები ─────────────────────────────
+        self.training_active = False
+        self.exercise = None
 
-        self.running = True
-        self.timer_started = False
-        self.start_time = None
-
-        # UI
+        # ── UI ────────────────────────────────────────
         self.ui = Canvas(root)
-        self.keyboard = Keyboard(self.ui.canvas, self.ui.width, self.ui.height)
-
-        self.ui.draw_sentence(self.engine.letters)
-        self.ui.draw_score_timer()
-
-        root.bind("<Key>", self.on_key)
-        root.bind("<Control-Shift-X>", self.force_exit)
-
-        self.update_target()
-
-    def _force_exit(self, event=None):
-        """
-            საიდუმლო ავარიული გამოსვლა მასწავლებლისთვის.
-            მუშაობს კიოსკ რეჟიმშიც.
-        """
-        self.root.destroy()    
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
-    # --------------------------------------------------
-    # დრო
-    # --------------------------------------------------
-    def elapsed_seconds(self) -> int:
-        if self.start_time is None:
-            return 0
-        return int(time.time() - self.start_time)
-
-    # --------------------------------------------------
-    # target
-    # --------------------------------------------------
-    def update_target(self):
-        if self.engine.finished:
-            return
-        self.keyboard.highlight(self.engine.current())
-
-    # --------------------------------------------------
-    # კლავიში
-    # --------------------------------------------------
-    def on_key(self, event: tk.Event):
-        if not self.running:
-            return
-
-        ch = event.keysym.upper()
-        if ch == "SPACE":
-            ch = " "
-
-        if not self.engine.acceptable(ch):
-            return
-
-        if not self.timer_started and ch == self.engine.letters[0]:
-            self.timer_started = True
-            self.start_time = time.time()
-            self.tick()
-
-        if not self.engine.hit(ch):
-            self.keyboard.highlight(ch, color="red")
-            self.root.after(200, lambda: self.keyboard.reset_key(ch))
-            return
-
-        self.ui.shade_letter(self.engine.pos - 1)
-        self.keyboard.highlight(ch, color="lightgreen")
-
-        self.progress.step()
-        self.ui.update_score(self.progress.percent)
-
-        self.root.after(180, lambda: self.after_correct(ch))
-
-    def after_correct(self, ch: str):
-        self.keyboard.reset_key(ch)
-        self.keyboard.clear_all()
-
-        if self.engine.finished:
-            self.load_next_sentence()
-        else:
-            self.update_target()
-
-    # --------------------------------------------------
-    # წინადადებების გადართვა
-    # --------------------------------------------------
-    def load_next_sentence(self):
-        self.ui.clear_sentence()
-
-        if not self.engine.next_sentence():
-            self.finish_all()
-            return
-
-        self.progress.reset(self.engine.total)
-        self.ui.update_score(0)
-        self.ui.draw_sentence(self.engine.letters)
-        self.update_target()
-
-    # --------------------------------------------------
-    # ტაიმერი
-    # --------------------------------------------------
-    def tick(self):
-        if not self.timer_started or not self.running:
-            return
-
-        self.ui.update_timer(self.elapsed_seconds())
-        self.root.after(1000, self.tick)
-
-    # --------------------------------------------------
-    # დასრულება
-    # --------------------------------------------------
-    def finish_all(self):
-        self.running = False
-        self.ui.show_result(
-            f"ᲓᲠᲝ: {self.elapsed_seconds()}   ᲥᲣᲚᲔᲑᲘ: {self.progress.percent}"
+        self.keyboard = Keyboard(
+            self.ui.canvas,
+            self.ui.width,
+            self.ui.height,
         )
-        self.root.config(cursor="arrow")
 
-    def force_exit(self, event=None):
-        self.root.config(cursor="arrow")
-        self.root.destroy()
+        # ── Menu ──────────────────────────────────────
+        self.menu = AppMenu(
+            root=self.root,
+            on_start=self.start_training,
+            on_exit=self.root.destroy,
+            on_about=self._about,
+        )
+        self.menu.show()
 
+        # ── Cover Page ─────────────────────────────────
+        self._draw_cover()
 
-if __name__ == "__main__":
-    root = tk.Tk()
-    Trainer(root)
-    root.mainloop()
+        # ── Key bindings ───────────────────────────────
+        self.root.bind("<Key>", self.on_key)
+        self.root.bind(self.SECRET_EXIT_COMBO, self._secret_finish)
+
+    # ==================================================
+    #   COVER
+    # ==================================================
+    def _draw_cover(self):
+        """Cover Page — საწყისი ეკრანი"""
+        self.ui.clear()
+        self.ui.canvas.create_text(
+            self.ui.width / 2,
+            self.ui.height / 2,
+            text="KLAVA\n\nPress Start to Begin",
+            font=("Arial", 48, "bold"),
+            fill="#444",
+            justify="center",
+        )
+
+    # ==================================================
+    #   TRAINING CONTROL
+    # ==================================================
+    def start_training(self):
+        """ტრენინგის დაწყება"""
+        if self.training_active:
+            return
+
+        self.training_active = True
+        self.menu.hide()
+        self._enable_kiosk()
+
+        # ── Exercise არჩევა (ახლა ერთია) ─────────────
+        self.exercise = TypingExercise(self.ui, self.keyboard)
+        self.exercise.start()
+
+    def finish_training(self):
+        """ტრენინგის დასრულება"""
+        self.training_active = False
+        self.exercise = None
+
+        self._disable_kiosk()
+        self.menu.show()
+        self._draw_cover()
+
+    # ==================================================
+    #   KIOSK MODE
+    # ==================================================
+    def _enable_kiosk(self):
+        """kiosk რეჟიმის ჩართვა"""
+        self.root.attributes("-fullscreen", True)
+        self.root.attributes("-topmost", True)
+        self.root.config(cursor="none")
+        self.root.protocol("WM_DELETE_WINDOW", lambda: None)
+
+    def _disable_kiosk(self):
+        """kiosk რეჟიმის გამორთვა"""
+        self.root.attributes("-fullscreen", False)
+        self.root.attributes("-topmost", False)
+        self.root.config(cursor="")
+        self.root.protocol("WM_DELETE_WINDOW", self.root.destroy)
+
+    # ==================================================
+    #   KEY HANDLING
+    # ==================================================
+    def on_key(self, event):
+        """ყველა კლავიშის ცენტრალური დამმუშავებელი"""
+        if not self.training_active or not self.exercise:
+            return
+
+        self.exercise.on_key(event)
+
+        if self.exercise.finished:
+            self.finish_training()
+
+    # ==================================================
+    #   SECRET EXIT
+    # ==================================================
+    def _secret_finish(self, event=None):
+        """
+        საიდუმლო კომბინაცია:
+        - მუშაობს მხოლოდ ტრენინგის დროს
+        - ასრულებს სავარჯიშოს
+        - ხსნის kiosk რეჟიმს
+        """
+        if not self.training_active or not self.exercise:
+            return
+
+        self.exercise.stop()
+        self.finish_training()
+
+    # ==================================================
+    #   ABOUT
+    # ==================================================
+    def _about(self):
+        messagebox.showinfo(
+            "About KLAVA", "KLAVA Typing Trainer\n\nAccuracy-first typing practice."
+        )
