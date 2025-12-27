@@ -82,7 +82,16 @@ class Trainer:
         self.menu.hide()
         self._enable_kiosk()
 
-        # ── Exercise არჩევა (ახლა ერთია) ─────────────
+        # ── Keyboard-ის შექმნა (აუცილებელია) ───────────
+        from ui.keyboard import Keyboard
+
+        self.keyboard = Keyboard(
+            self.ui.canvas,
+            self.ui.width,
+            self.ui.height,
+        )
+
+        # ── Exercise არჩევა (ახლა ერთია) ───────────────
         self.exercise = TypingExercise(self.ui, self.keyboard)
         self.exercise.start()
 

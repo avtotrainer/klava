@@ -65,7 +65,6 @@ class TypingExercise(Exercise):
 
         if correct:
             self.progress.step()
-            self.ui.update_progress(self.progress.percent)
 
         if self.engine.finished:
             self._finished = True
