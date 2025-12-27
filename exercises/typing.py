@@ -38,8 +38,6 @@ class TypingExercise(Exercise):
         """
         self.ui.clear()
         self.ui.draw_sentence(self.engine.letters)
-        self.ui.draw_progress()
-        self.keyboard.draw()
         self._update_target()
 
     def stop(self):
@@ -63,13 +61,11 @@ class TypingExercise(Exercise):
             return
 
         correct = self.engine.hit(ch)
-        self.ui.mark_letter(self.engine.pos - 1, correct)
+        self.ui.shade_letter(self.engine.pos - 1)
 
         if correct:
             self.progress.step()
             self.ui.update_progress(self.progress.percent)
-
-        self.keyboard.clear()
 
         if self.engine.finished:
             self._finished = True
