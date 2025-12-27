@@ -10,10 +10,15 @@ class TypingExercise(Exercise):
     """
     ბეჭდვის სავარჯიშო.
 
-    ეს კლასი:
-    - არ იცნობს Trainer-ს
-    - არ მართავს root-ს
-    - არ იცის kiosk რეჟიმის არსებობა
+    პასუხისმგებლობა:
+    - კლავიშის დამუშავება
+    - სწორ/არასწორ ბეჭდვაზე რეაქცია
+    - სავარჯიშოს დასრულების ფლაგი
+
+    არ აკეთებს:
+    - cover-ის ჩვენება/დამალვა
+    - კლავიატურის ჩვენება/დამალვა
+    - Trainer-ის მართვა
     """
 
     def __init__(self, ui, keyboard):
@@ -28,6 +33,7 @@ class TypingExercise(Exercise):
         self.progress = Progress(self.engine.total)
 
         self._finished = False
+        self._current_key = None
 
     # ==================================================
     #   Exercise API
@@ -36,8 +42,13 @@ class TypingExercise(Exercise):
         """
         სავარჯიშოს დაწყება.
         """
+        self._finished = False
+        self._current_key = None
+
+        # ვასუფთავებთ მხოლოდ ტექსტს
         self.ui.clear()
         self.ui.draw_sentence(self.engine.letters)
+
         self._update_target()
 
     def stop(self):
@@ -61,9 +72,10 @@ class TypingExercise(Exercise):
             return
 
         correct = self.engine.hit(ch)
-        self.ui.shade_letter(self.engine.pos - 1)
 
         if correct:
+            # სწორად აკრეფილი ასოს გამუქება
+            self.ui.shade_letter(self.engine.pos - 1)
             self.progress.step()
 
         if self.engine.finished:
@@ -74,7 +86,7 @@ class TypingExercise(Exercise):
     @property
     def finished(self) -> bool:
         """
-        აბრუნებს True-ს თუ სავარჯიშო დასრულებულია.
+        აბრუნებს True-ს, თუ სავარჯიშო დასრულებულია.
         """
         return self._finished
 
@@ -83,6 +95,10 @@ class TypingExercise(Exercise):
     # ==================================================
     def _update_target(self):
         """
-        მიმდინარე სიმბოლოს ჰაილაითი.
+        მიმდინარე სიმბოლოს ჰაილაითი კლავიატურაზე.
         """
-        self.keyboard.highlight(self.engine.current())
+        if self._current_key is not None:
+            self.keyboard.reset_key(self._current_key)
+
+        self._current_key = self.engine.current()
+        self.keyboard.highlight(self._current_key)

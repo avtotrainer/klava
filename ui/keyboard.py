@@ -16,9 +16,20 @@ class Keyboard:
     ეკრანის კლავიატურა.
     ზუსტად იმავე ზომებით, განლაგებით და ფერებით,
     რაც ძველ Trainer-ში იყო.
+
+    ყველა ელემენტი იხატება ერთ Canvas-ზე,
+    მაგრამ მონიშნულია tags=("keyboard",),
+    რათა ტექსტის გადახატვისას არ წაიშალოს.
     """
 
     def __init__(self, canvas, screen_width, screen_height):
+        """
+        Keyboard-ის ინიციალიზაცია.
+
+        :param canvas: Tkinter Canvas, რომელზეც იხატება კლავიატურა
+        :param screen_width: ეკრანის სიგანე
+        :param screen_height: ეკრანის სიმაღლე
+        """
         self.canvas = canvas
         self.width = screen_width
         self.height = screen_height
@@ -31,6 +42,10 @@ class Keyboard:
     #   დამრგვალებული ღილაკი
     # ======================================================
     def _round_rect(self, x1, y1, x2, y2, r=15, **kw):
+        """
+        დამრგვალებული მართკუთხედის დახატვა Canvas-ზე.
+        ყველა ღილაკი მონიშნულია keyboard tag-ით.
+        """
         pts = [
             x1 + r,
             y1,
@@ -57,18 +72,21 @@ class Keyboard:
             x1,
             y1,
         ]
-        return self.canvas.create_polygon(pts, smooth=True, **kw)
+        return self.canvas.create_polygon(pts, smooth=True, tags=("keyboard",), **kw)
 
     # ======================================================
     #   კლავიატურის დახატვა
     # ======================================================
     def _draw_keys(self):
+        """
+        კლავიატურის ყველა ღილაკის დახატვა.
+        """
         key_w = self.width / 12
         key_h = self.height / 8
         gap = key_w * 0.12
         y0 = self.height / 3
 
-        # ასოები
+        # ასოების რიგები
         for r, row in enumerate(KEYBOARD):
             row_w = len(row) * (key_w + gap)
             x0 = self.width / 2 - row_w / 2
@@ -94,10 +112,11 @@ class Keyboard:
                     text=ch,
                     font=("Arial", int(key_h * 0.35), "bold"),
                     fill=PALE,
+                    tags=("keyboard",),
                 )
                 self.key_boxes[ch] = (rect, txt)
 
-        # SPACE
+        # SPACE ღილაკი
         space_w = key_w * 6
         x1 = self.width / 2 - space_w / 2
         x2 = x1 + space_w
@@ -119,6 +138,7 @@ class Keyboard:
             text="SPACE",
             font=("Arial", int(key_h * 0.3), "bold"),
             fill=PALE,
+            tags=("keyboard",),
         )
 
         self.key_boxes[" "] = (rect, txt)
@@ -127,18 +147,27 @@ class Keyboard:
     #   ჰაილაითი
     # ======================================================
     def highlight(self, ch, color="yellow"):
+        """
+        კონკრეტული ღილაკის გამოკვეთა.
+        """
         if ch in self.key_boxes:
             rect, txt = self.key_boxes[ch]
             self.canvas.itemconfig(rect, fill=color)
             self.canvas.itemconfig(txt, fill=DARK)
 
     def reset_key(self, ch):
+        """
+        კონკრეტული ღილაკის საწყის მდგომარეობაში დაბრუნება.
+        """
         if ch in self.key_boxes:
             rect, txt = self.key_boxes[ch]
             self.canvas.itemconfig(rect, fill="#eeeeee")
             self.canvas.itemconfig(txt, fill=PALE)
 
     def clear_all(self):
+        """
+        ყველა ღილაკის გასუფთავება (ფერების დაბრუნება).
+        """
         for rect, txt in self.key_boxes.values():
             self.canvas.itemconfig(rect, fill="#eeeeee")
             self.canvas.itemconfig(txt, fill=PALE)

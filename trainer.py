@@ -7,19 +7,12 @@ from tkinter import messagebox
 from ui.canvas import Canvas
 from ui.keyboard import Keyboard
 from ui.menu import AppMenu
-
 from exercises.typing import TypingExercise
 
 
 class Trainer:
     """
     Trainer — აპლიკაციის სესიის მმართველი.
-
-    პასუხისმგებელია:
-    - menu bar-ზე
-    - cover page-ზე
-    - kiosk რეჟიმზე
-    - exercise lifecycle-ზე
     """
 
     SECRET_EXIT_COMBO = "<Control-Alt-Shift-Q>"
@@ -27,19 +20,19 @@ class Trainer:
     def __init__(self, root: tk.Tk):
         self.root = root
 
-        # ── მდგომარეობები ─────────────────────────────
         self.training_active = False
         self.exercise = None
 
-        # ── UI ────────────────────────────────────────
+        # ── UI ───────────────────────────────────────
         self.ui = Canvas(root)
+
         self.keyboard = Keyboard(
             self.ui.canvas,
             self.ui.width,
             self.ui.height,
         )
 
-        # ── Menu ──────────────────────────────────────
+        # ── Menu ─────────────────────────────────────
         self.menu = AppMenu(
             root=self.root,
             on_start=self.start_training,
@@ -48,33 +41,18 @@ class Trainer:
         )
         self.menu.show()
 
-        # ── Cover Page ─────────────────────────────────
-        self._draw_cover()
+        # ── Initial state ────────────────────────────
+        self.ui.show_cover("KLAVA\n\nStart to begin")
+        self.ui.hide_keyboard()
 
-        # ── Key bindings ───────────────────────────────
+        # ── Key bindings ─────────────────────────────
         self.root.bind("<Key>", self.on_key)
         self.root.bind(self.SECRET_EXIT_COMBO, self._secret_finish)
-
-    # ==================================================
-    #   COVER
-    # ==================================================
-    def _draw_cover(self):
-        """Cover Page — საწყისი ეკრანი"""
-        self.ui.clear()
-        self.ui.canvas.create_text(
-            self.ui.width / 2,
-            self.ui.height / 2,
-            text="KLAVA\n\nPress Start to Begin",
-            font=("Arial", 48, "bold"),
-            fill="#444",
-            justify="center",
-        )
 
     # ==================================================
     #   TRAINING CONTROL
     # ==================================================
     def start_training(self):
-        """ტრენინგის დაწყება"""
         if self.training_active:
             return
 
@@ -82,50 +60,29 @@ class Trainer:
         self.menu.hide()
         self._enable_kiosk()
 
-        # ── Keyboard-ის შექმნა (აუცილებელია) ───────────
-        from ui.keyboard import Keyboard
+        # UI state
+        self.ui.hide_cover()
+        self.ui.show_keyboard()
 
-        self.keyboard = Keyboard(
-            self.ui.canvas,
-            self.ui.width,
-            self.ui.height,
-        )
-
-        # ── Exercise არჩევა (ახლა ერთია) ───────────────
+        # Exercise
         self.exercise = TypingExercise(self.ui, self.keyboard)
         self.exercise.start()
 
     def finish_training(self):
-        """ტრენინგის დასრულება"""
         self.training_active = False
         self.exercise = None
 
+        # UI state
+        self.ui.hide_keyboard()
+        self.ui.show_cover("დავალება შესრულებულია")
+
         self._disable_kiosk()
         self.menu.show()
-        self._draw_cover()
-
-    # ==================================================
-    #   KIOSK MODE
-    # ==================================================
-    def _enable_kiosk(self):
-        """kiosk რეჟიმის ჩართვა"""
-        self.root.attributes("-fullscreen", True)
-        self.root.attributes("-topmost", True)
-        self.root.config(cursor="none")
-        self.root.protocol("WM_DELETE_WINDOW", lambda: None)
-
-    def _disable_kiosk(self):
-        """kiosk რეჟიმის გამორთვა"""
-        self.root.attributes("-fullscreen", False)
-        self.root.attributes("-topmost", False)
-        self.root.config(cursor="")
-        self.root.protocol("WM_DELETE_WINDOW", self.root.destroy)
 
     # ==================================================
     #   KEY HANDLING
     # ==================================================
     def on_key(self, event):
-        """ყველა კლავიშის ცენტრალური დამმუშავებელი"""
         if not self.training_active or not self.exercise:
             return
 
@@ -138,12 +95,6 @@ class Trainer:
     #   SECRET EXIT
     # ==================================================
     def _secret_finish(self, event=None):
-        """
-        საიდუმლო კომბინაცია:
-        - მუშაობს მხოლოდ ტრენინგის დროს
-        - ასრულებს სავარჯიშოს
-        - ხსნის kiosk რეჟიმს
-        """
         if not self.training_active or not self.exercise:
             return
 
@@ -151,9 +102,25 @@ class Trainer:
         self.finish_training()
 
     # ==================================================
+    #   KIOSK MODE
+    # ==================================================
+    def _enable_kiosk(self):
+        self.root.attributes("-fullscreen", True)
+        self.root.attributes("-topmost", True)
+        self.root.config(cursor="none")
+        self.root.protocol("WM_DELETE_WINDOW", lambda: None)
+
+    def _disable_kiosk(self):
+        self.root.attributes("-fullscreen", False)
+        self.root.attributes("-topmost", False)
+        self.root.config(cursor="")
+        self.root.protocol("WM_DELETE_WINDOW", self.root.destroy)
+
+    # ==================================================
     #   ABOUT
     # ==================================================
     def _about(self):
         messagebox.showinfo(
-            "About KLAVA", "KLAVA Typing Trainer\n\nAccuracy-first typing practice."
+            "About KLAVA",
+            "KLAVA Typing Trainer\n\nAccuracy-first typing practice.",
         )
