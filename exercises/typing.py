@@ -3,34 +3,33 @@
 
 from exercises.base import Exercise
 from logic.engine import TypingEngine
-from logic.progress import Progress
 
 
 class TypingExercise(Exercise):
     """
-    ბეჭდვის სავარჯიშო.
+    ბეჭდვის სავარჯიშო — მუშაობს ზუსტად ერთ სტრიქონზე.
 
     პასუხისმგებლობა:
     - კლავიშის დამუშავება
     - სწორ/არასწორ ბეჭდვაზე რეაქცია
-    - სავარჯიშოს დასრულების ფლაგი
+    - მიმდინარე სტრიქონის დასრულების ფლაგი
 
     არ აკეთებს:
-    - cover-ის ჩვენება/დამალვა
-    - კლავიატურის ჩვენება/დამალვა
-    - Trainer-ის მართვა
+    - სტრიქონების ციკლს
+    - ფაილების კითხვას
+    - Trainer-ის მართვას
     """
 
-    def __init__(self, ui, keyboard):
+    def __init__(self, ui, keyboard, sentence: str):
         """
         :param ui: Canvas UI ობიექტი
         :param keyboard: Keyboard UI ობიექტი
+        :param sentence: ერთი სტრიქონი ბეჭდვისთვის
         """
         self.ui = ui
         self.keyboard = keyboard
 
-        self.engine = TypingEngine("data/sentences.txt")
-        self.progress = Progress(self.engine.total)
+        self.engine = TypingEngine(sentence)
 
         self._finished = False
         self._current_key = None
@@ -40,12 +39,11 @@ class TypingExercise(Exercise):
     # ==================================================
     def start(self):
         """
-        სავარჯიშოს დაწყება.
+        სავარჯიშოს დაწყება (ერთი სტრიქონი).
         """
         self._finished = False
         self._current_key = None
 
-        # ვასუფთავებთ მხოლოდ ტექსტს
         self.ui.clear()
         self.ui.draw_sentence(self.engine.letters)
 
@@ -76,17 +74,17 @@ class TypingExercise(Exercise):
         if correct:
             # სწორად აკრეფილი ასოს გამუქება
             self.ui.shade_letter(self.engine.pos - 1)
-            self.progress.step()
 
         if self.engine.finished:
             self._finished = True
+            self.keyboard.reset_key(self._current_key)
         else:
             self._update_target()
 
     @property
     def finished(self) -> bool:
         """
-        აბრუნებს True-ს, თუ სავარჯიშო დასრულებულია.
+        აბრუნებს True-ს, თუ მიმდინარე სტრიქონი დასრულებულია.
         """
         return self._finished
 

@@ -5,31 +5,28 @@
 class TypingEngine:
     """
     ბეჭდვის ლოგიკა.
-    UI არაფერი იცის.
+
+    პასუხისმგებლობა:
+    - ერთ სტრიქონზე ბეჭდვის კონტროლი
+    - მიმდინარე სიმბოლოს მართვა
+    - დასრულების მდგომარეობის დაფიქსირება
+
+    არ აკეთებს:
+    - ფაილების კითხვას
+    - ტექსტის არჩევას
+    - fallback ტექსტის გენერაციას
     """
 
-    def __init__(self, path: str):
+    def __init__(self, sentence: str):
         """
-        წინადადებების ჩატვირთვა ფაილიდან.
-        """
-        try:
-            with open(path, encoding="utf-8") as f:
-                self.sentences = [line.strip().upper() for line in f if line.strip()]
-        except FileNotFoundError:
-            self.sentences = ["HELLO WORLD"]
+        ქმნის ბეჭდვის ლოგიკას ერთ სტრიქონზე.
 
-        self.index = 0
-        self._load_current_sentence()
+        :param sentence: არაცარიელი სტრიქონი
+        """
+        if not isinstance(sentence, str) or not sentence.strip():
+            raise ValueError("TypingEngine საჭიროებს არაცარიელ სტრიქონს")
 
-    # --------------------------------------------------
-    # შიდა ჩატვირთვა
-    # --------------------------------------------------
-    def _load_current_sentence(self):
-        """
-        იტვირთავს მიმდინარე წინადადებას index-ის მიხედვით.
-        """
-        self.current_sentence = self.sentences[self.index]
-        self.letters = list(self.current_sentence)
+        self.letters = list(sentence)
         self.pos = 0
         self.finished = False
 
@@ -39,7 +36,7 @@ class TypingEngine:
     @property
     def total(self) -> int:
         """
-        მიმდინარე წინადადების სიგრძე.
+        სტრიქონის სიგრძე.
         """
         return len(self.letters)
 
@@ -57,13 +54,15 @@ class TypingEngine:
             return ""
         return self.letters[self.pos]
 
-    # ბექვორდ-კომპატიბილითი Trainer-ისთვის
+    # backward compatibility TypingExercise-ისთვის
     def current(self) -> str:
         return self.current_char()
 
     def hit(self, ch: str) -> bool:
         """
         სიმბოლოზე დაჭერის დამუშავება.
+
+        :return: True თუ სწორია, False — თუ არა
         """
         if self.finished:
             return False
@@ -76,15 +75,4 @@ class TypingEngine:
         if self.pos >= len(self.letters):
             self.finished = True
 
-        return True
-
-    def next_sentence(self) -> bool:
-        """
-        შემდეგ წინადადებაზე გადასვლა.
-        """
-        self.index += 1
-        if self.index >= len(self.sentences):
-            return False
-
-        self._load_current_sentence()
         return True
