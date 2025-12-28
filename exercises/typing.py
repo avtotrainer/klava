@@ -1,102 +1,116 @@
 # exercises/typing.py
-# KLAVA — Typing Exercise
+# KLAVA — Typing Exercise (single line)
 
-from exercises.base import Exercise
-from logic.engine import TypingEngine
+from __future__ import annotations
+
+import tkinter as tk
 
 
-class TypingExercise(Exercise):
+class TypingExercise:
     """
-    ბეჭდვის სავარჯიშო — მუშაობს ზუსტად ერთ სტრიქონზე.
+    ერთსტრიქონიანი ბეჭდვის სავარჯიშო.
 
     პასუხისმგებლობა:
-    - კლავიშის დამუშავება
-    - სწორ/არასწორ ბეჭდვაზე რეაქცია
-    - მიმდინარე სტრიქონის დასრულების ფლაგი
+    - ერთი სტრიქონის/წინადადების გავლა
+    - სწორი/არასწორი დაჭერის შეფასება
+    - UI-სთვის საჭირო ბრძანებების გაცემა (Canvas + Keyboard)
 
-    არ აკეთებს:
-    - სტრიქონების ციკლს
-    - ფაილების კითხვას
-    - Trainer-ის მართვას
+    შენიშვნა:
+    - ეს კლასი არ ქმნის Canvas/Keyboard-ს — ის მხოლოდ იღებს მათ და იყენებს.
     """
 
-    def __init__(self, ui, keyboard, sentence: str):
-        """
-        :param ui: Canvas UI ობიექტი
-        :param keyboard: Keyboard UI ობიექტი
-        :param sentence: ერთი სტრიქონი ბეჭდვისთვის
-        """
+    def __init__(self, ui, keyboard, sentence: str) -> None:
         self.ui = ui
         self.keyboard = keyboard
 
-        self.engine = TypingEngine(sentence)
+        self.sentence: str = sentence.upper()
+        self.letters: list[str] = list(self.sentence)
 
-        self._finished = False
-        self._current_key = None
+        self.pos: int = 0
+        self.finished: bool = False
 
-    # ==================================================
-    #   Exercise API
-    # ==================================================
-    def start(self):
+    # ======================================================
+    #   LIFECYCLE
+    # ======================================================
+    def start(self) -> None:
         """
-        სავარჯიშოს დაწყება (ერთი სტრიქონი).
+        სავარჯიშოს დაწყება:
+        - ტექსტის დახატვა
+        - პირველი target-ის დაყენება
         """
-        self._finished = False
-        self._current_key = None
+        self.finished = False
+        self.pos = 0
 
-        self.ui.clear()
-        self.ui.draw_sentence(self.engine.letters)
+        # ტექსტი თავიდან დახატე (თუ Canvas-ში ძველი რამ დარჩა)
+        self.ui.clear_sentence()
+        self.ui.draw_sentence(self.letters)
 
-        self._update_target()
+        # პირველი target
+        self._set_target()
 
-    def stop(self):
-        """
-        იძულებითი დასრულება (secret exit).
-        """
-        self._finished = True
+    def stop(self) -> None:
+        """სავარჯიშოს შეჩერება."""
+        self.finished = True
 
-    def on_key(self, event):
+    # ======================================================
+    #   INPUT
+    # ======================================================
+    def on_key(self, event: tk.Event) -> None:
         """
-        კლავიშის დამუშავება.
+        იღებს Tkinter key event-ს და ამუშავებს მხოლოდ მისაღებ ღილაკებს.
         """
-        if self._finished:
+        if self.finished:
             return
 
-        ch = event.keysym.upper()
-        if ch == "SPACE":
-            ch = " "
+        key = str(event.keysym).upper()
+        if key == "SPACE":
+            key = " "
 
-        if not self.engine.acceptable(ch):
+        # ჩვენთვის მისაღებია მხოლოდ ის კლავიშები, რაც კლავიატურაზეა
+        if key not in self.keyboard.key_boxes:
             return
 
-        correct = self.engine.hit(ch)
+        target = self.current_target()
+        if target is None:
+            return
 
-        if correct:
-            # სწორად აკრეფილი ასოს გამუქება
-            self.ui.shade_letter(self.engine.pos - 1)
+        # არასწორი
+        if key != target:
+            self.keyboard.highlight_wrong(key)
+            return
 
-        if self.engine.finished:
-            self._finished = True
-            self.keyboard.reset_key(self._current_key)
-        else:
-            self._update_target()
+        # სწორი
+        self.keyboard.highlight_correct(key)
 
-    @property
-    def finished(self) -> bool:
+        # ტექსტში მონიშვნა (სწორი სიმბოლო გამუქდეს)
+        self.ui.mark_letter(self.pos)
+
+        self.pos += 1
+        if self.pos >= len(self.letters):
+            self.finished = True
+            return
+
+        # შემდეგი target
+        self._set_target()
+
+    # ======================================================
+    #   HELPERS
+    # ======================================================
+    def current_target(self) -> str | None:
+        """აბრუნებს მიმდინარე სამიზნე სიმბოლოს, ან None თუ დასრულებულია."""
+        if self.pos >= len(self.letters):
+            return None
+        return self.letters[self.pos]
+
+    def _set_target(self) -> None:
         """
-        აბრუნებს True-ს, თუ მიმდინარე სტრიქონი დასრულებულია.
+        აყენებს target-ს კლავიატურაზე იგივე პრინციპით, როგორც ძველ root Trainer-ში იყო:
+        - target ყოველთვის ყვითელია
+        - სწორის შემდეგ გადადის ახალ target-ზე
+        - არასწორი არ ცვლის target-ს
         """
-        return self._finished
+        target = self.current_target()
+        if target is None:
+            return
 
-    # ==================================================
-    #   Internal helpers
-    # ==================================================
-    def _update_target(self):
-        """
-        მიმდინარე სიმბოლოს ჰაილაითი კლავიატურაზე.
-        """
-        if self._current_key is not None:
-            self.keyboard.reset_key(self._current_key)
-
-        self._current_key = self.engine.current()
-        self.keyboard.highlight(self._current_key)
+        self.keyboard.set_target(target)

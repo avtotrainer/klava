@@ -3,8 +3,11 @@
 # პასუხისმგებელია ტექსტზე, ქულებზე, დროზე და შედეგებზე
 # ლოგიკა აქ არ ითვლება — მხოლოდ ვიზუალი
 
+from __future__ import annotations
+
 import tkinter as tk
 
+# ფერები დროებით აქაა — ქვემოთ აგიხსნი როგორ გავიტანოთ
 PALE = "#cccccc"
 DARK = "#000000"
 
@@ -15,9 +18,13 @@ class Canvas:
     Trainer იძახებს, Canvas ხატავს.
     """
 
-    def __init__(self, root):
+    def __init__(self, root: tk.Tk) -> None:
         self.root = root
-        self.canvas = tk.Canvas(root, bg="white")
+        self.canvas = tk.Canvas(
+            root,
+            bg="white",
+            highlightthickness=0,
+        )
         self.canvas.pack(fill="both", expand=True)
 
         self.width = self.canvas.winfo_screenwidth()
@@ -27,12 +34,11 @@ class Canvas:
         self.text_ids: list[int] = []
 
         # სტატუსის ელემენტები
-        self.timer_display = None
-        self.score_display = None
-        self.result_display = None
+        self.timer_display: int | None = None
+        self.score_display: int | None = None
+        self.result_display: int | None = None
 
         # ── COVER OVERLAY ─────────────────────────
-
         self.cover_rect = self.canvas.create_rectangle(
             0,
             0,
@@ -58,40 +64,31 @@ class Canvas:
     # ======================================================
     #   კლავიატურის ხილვადობა
     # ======================================================
-    def hide_keyboard(self):
-        """
-        კლავიატურის დამალვა (cover page-ზე).
-        """
+    def hide_keyboard(self) -> None:
+        """კლავიატურის დამალვა (cover page-ზე)."""
         self.canvas.itemconfigure("keyboard", state="hidden")
 
-    def show_keyboard(self):
-        """
-        კლავიატურის გამოჩენა (ტრენინგის დაწყებისას).
-        """
+    def show_keyboard(self) -> None:
+        """კლავიატურის გამოჩენა (ტრენინგის დაწყებისას)."""
         self.canvas.itemconfigure("keyboard", state="normal")
 
-        # ======================================================
-
+    # ======================================================
     #   COVER OVERLAY
     # ======================================================
-    def show_cover(self, text: str):
-        """
-        ფარდის ჩვენება ტექსტით (მენიუ / დასრულება).
-        """
+    def show_cover(self, text: str) -> None:
+        """ფარდის ჩვენება ტექსტით (მენიუ / დასრულება)."""
         self.canvas.itemconfig(self.cover_text, text=text)
         self.canvas.itemconfigure("cover", state="normal")
         self.canvas.tag_raise("cover")
 
-    def hide_cover(self):
-        """
-        ფარდის დამალვა (ტრენინგის დაწყება).
-        """
+    def hide_cover(self) -> None:
+        """ფარდის დამალვა (ტრენინგის დაწყება)."""
         self.canvas.itemconfigure("cover", state="hidden")
 
     # ======================================================
-    #   საერთო გაწმენდა (უსაფრთხო)
+    #   საერთო გაწმენდა
     # ======================================================
-    def clear(self):
+    def clear(self) -> None:
         """
         ეკრანის გაწმენდა.
 
@@ -106,11 +103,9 @@ class Canvas:
     # ======================================================
     #   წინადადება
     # ======================================================
-    def draw_sentence(self, letters):
-        """
-        ხატავს წინადადებას ღია ფერით (PALE).
-        """
-        self.text_ids.clear()
+    def draw_sentence(self, letters: list[str]) -> None:
+        """ხატავს წინადადებას ღია ფერით (PALE)."""
+        self.clear_sentence()
 
         y = 130
         spacing = min(70, max(40, self.width * 0.75 / len(letters)))
@@ -128,17 +123,18 @@ class Canvas:
             )
             self.text_ids.append(tid)
 
-    def clear_sentence(self):
-        """
-        შლის მხოლოდ წინადადების ასოებს.
-        """
+    def clear_sentence(self) -> None:
+        """შლის მხოლოდ წინადადების ასოებს."""
         for tid in self.text_ids:
             self.canvas.delete(tid)
         self.text_ids.clear()
 
-    def shade_letter(self, index: int):
+    def mark_letter(self, index: int) -> None:
         """
         სწორად აკრეფილი ასოს გამუქება.
+
+        NOTE:
+        ეს არის API, რომელსაც TypingExercise იყენებს.
         """
         if 0 <= index < len(self.text_ids):
             self.canvas.itemconfig(self.text_ids[index], fill=DARK)
@@ -146,11 +142,8 @@ class Canvas:
     # ======================================================
     #   ქულები და ტაიმერი
     # ======================================================
-    def draw_score_timer(self):
-        """
-        ხატავს ტაიმერს, ქულებს და შედეგის ველს.
-        იძახება ერთხელ Trainer-ის init-ში.
-        """
+    def draw_score_timer(self) -> None:
+        """ხატავს ტაიმერს, ქულებს და შედეგის ველს."""
         self.timer_display = self.canvas.create_text(
             120,
             self.height - 130,
@@ -178,26 +171,17 @@ class Canvas:
             tags=("hud",),
         )
 
-    def update_score(self, score):
-        """
-        ქულის განახლება.
-        """
-        if self.score_display is None:
-            return
-        self.canvas.itemconfig(self.score_display, text=str(score))
+    def update_score(self, score: int) -> None:
+        """ქულის განახლება."""
+        if self.score_display is not None:
+            self.canvas.itemconfig(self.score_display, text=str(score))
 
-    def update_timer(self, seconds):
-        """
-        ტაიმერის განახლება წამებში.
-        """
-        if self.timer_display is None:
-            return
-        self.canvas.itemconfig(self.timer_display, text=str(seconds))
+    def update_timer(self, seconds: int) -> None:
+        """ტაიმერის განახლება წამებში."""
+        if self.timer_display is not None:
+            self.canvas.itemconfig(self.timer_display, text=str(seconds))
 
-    def show_result(self, text):
-        """
-        საბოლოო შედეგის ჩვენება.
-        """
-        if self.result_display is None:
-            return
-        self.canvas.itemconfig(self.result_display, text=text)
+    def show_result(self, text: str) -> None:
+        """საბოლოო შედეგის ჩვენება."""
+        if self.result_display is not None:
+            self.canvas.itemconfig(self.result_display, text=text)
