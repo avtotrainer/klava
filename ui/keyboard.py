@@ -21,6 +21,30 @@ KEYBOARD = [
     list("ZXCVBNM"),
 ]
 
+# ui/keyboard.py
+
+FINGER_GROUPS = {
+    "left_pinky": set("AQZ"),
+    "left_ring": set("SWX"),
+    "left_middle": set("DEC"),
+    "left_index": set("FRVGTB"),
+    "right_index": set("JUMHYN"),
+    "right_middle": set("KI"),
+    "right_ring": set("LO"),
+    "right_pinky": set("P"),
+}
+
+FINGER_COLORS = {
+    "left_pinky": "#e53935",  # წითელი
+    "left_ring": "#6d4c41",  # ყავისფერი
+    "left_middle": "#fdd835",  # ყვითელი
+    "left_index": "#43a047",  # მწვანე
+    "right_index": "#fb8c00",  # ნარინჯისფერი
+    "right_middle": "#3949ab",  # იასამნისფერი
+    "right_ring": "#8e24aa",  # იისფერი
+    "right_pinky": "#1e88e5",  #  ლურჯი
+}
+
 
 class Keyboard:
     """
@@ -42,6 +66,33 @@ class Keyboard:
         self._wrong_flash_id: str | None = None
 
         self._draw_keys()
+
+    def _finger_for_key(self, ch: str) -> str | None:
+        """
+        აბრუნებს თითის ჯგუფს მოცემული კლავიშისთვის.
+        """
+        for finger, keys in FINGER_GROUPS.items():
+            if ch in keys:
+                return finger
+        return None
+
+    @staticmethod
+    def lighten_color(hex_color: str, factor: float = 0.85) -> str:
+        """
+        აბრუნებს უფრო ღია ფერს მოცემული HEX ფერისგან.
+        factor ∈ [0.0, 1.0]
+        """
+        hex_color = hex_color.lstrip("#")
+
+        r = int(hex_color[0:2], 16)
+        g = int(hex_color[2:4], 16)
+        b = int(hex_color[4:6], 16)
+
+        r = int(r + (255 - r) * factor)
+        g = int(g + (255 - g) * factor)
+        b = int(b + (255 - b) * factor)
+
+        return f"#{r:02x}{g:02x}{b:02x}"
 
     # ======================================================
     #   Drawing helpers
@@ -102,14 +153,17 @@ class Keyboard:
                 x1 = x0 + c * (key_w + gap)
                 y1 = y0 + r * (key_h + gap)
 
+                finger = self._finger_for_key(ch)
+                outline = FINGER_COLORS[finger] if finger is not None else "#999999"
+                fill = Keyboard.lighten_color(outline, factor=0.88)
                 rect = self._round_rect(
                     x1,
                     y1,
                     x1 + key_w,
                     y1 + key_h,
                     r=18,
-                    fill=COLOR_IDLE,
-                    outline=BORDER_BLUE,
+                    fill=fill,
+                    outline=outline,
                     width=2,
                     tags=("keyboard",),
                 )
