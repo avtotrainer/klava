@@ -15,7 +15,19 @@ class TypingEngine:
     - ფაილების კითხვას
     - ტექსტის არჩევას
     - fallback ტექსტის გენერაციას
+
+     NOTE:
+    Error feedback / behavioral guard-ისთვის
+    ემატება state სისტემა.
     """
+
+    # ===============================
+    #   INPUT STATES
+    # ===============================
+    STATE_NORMAL = "NORMAL"
+    STATE_DIMMING = "DIMMING"
+    STATE_BUG = "BUG"
+    STATE_RESTORE = "RESTORE"
 
     def __init__(self, sentence: str):
         """
@@ -29,6 +41,12 @@ class TypingEngine:
         self.letters = list(sentence)
         self.pos = 0
         self.finished = False
+
+        # ...
+        self.state = self.STATE_NORMAL
+
+        # ბოლო დაჭერების ისტორია (sweep detection-ისთვის)
+        self._key_history = []  # [(char, timestamp, correct)]
 
     # --------------------------------------------------
     # API
@@ -76,3 +94,30 @@ class TypingEngine:
             self.finished = True
 
         return True
+
+    # ==================================================
+    #   STATE CONTROL (SKELETON)
+    # ==================================================
+    def enter_error_state(self):
+        """
+        გადაყავს engine შეცდომის ანიმაციის მდგომარეობაში.
+        UI ამ state-ზე რეაგირებს.
+        """
+        self.state = self.STATE_DIMMING
+
+    def reset_error_state(self):
+        """
+        აბრუნებს engine-ს ნორმალურ მდგომარეობაში.
+        """
+        self.state = self.STATE_NORMAL
+        self._key_history.clear()
+
+    def is_locked(self) -> bool:
+        """
+        აბრუნებს True-ს, თუ input დროებით დაბლოკილია.
+        """
+        return self.state in (
+            self.STATE_DIMMING,
+            self.STATE_BUG,
+            self.STATE_RESTORE,
+        )
