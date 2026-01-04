@@ -54,7 +54,7 @@ class TypingEngine:
         """
         სიმბოლოზე დაჭერის დამუშავება.
         """
-
+        # ToDo აქ არის მცდელობა კლავიატურის ქცევის კონტროლის, რაც გადასახედი და გასასწორებელია
         # ⛔ input lock
         if self.finished or self.is_locked():
             return False
