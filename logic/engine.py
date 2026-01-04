@@ -67,14 +67,14 @@ class TypingEngine:
 
         # wrong streak (ერთ ასოზე)
         if not correct:
-            if now - self._last_wrong_time <= 0.8:
+            if now - self._last_wrong_time <= 2.0:
                 self._wrong_streak += 1
             else:
                 self._wrong_streak = 1
 
             self._last_wrong_time = now
 
-            if self._wrong_streak >= 5:
+            if self._wrong_streak >= 3:
                 self.enter_error_state()
         else:
             self._wrong_streak = 0
@@ -120,7 +120,7 @@ class TypingEngine:
         """
         if self.state != self.STATE_NORMAL:
             return
-
+        print(">>>>> ვაჟუილეებთ")
         self.state = self.STATE_DIMMING
 
     def reset_error_state(self):
