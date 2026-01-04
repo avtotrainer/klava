@@ -1,40 +1,20 @@
 # logic/engine.py
 # KLAVA — Typing logic engine
 
+import time
+
 
 class TypingEngine:
     """
     ბეჭდვის ლოგიკა.
-
-    პასუხისმგებლობა:
-    - ერთ სტრიქონზე ბეჭდვის კონტროლი
-    - მიმდინარე სიმბოლოს მართვა
-    - დასრულების მდგომარეობის დაფიქსირება
-
-    არ აკეთებს:
-    - ფაილების კითხვას
-    - ტექსტის არჩევას
-    - fallback ტექსტის გენერაციას
-
-     NOTE:
-    Error feedback / behavioral guard-ისთვის
-    ემატება state სისტემა.
     """
 
-    # ===============================
-    #   INPUT STATES
-    # ===============================
     STATE_NORMAL = "NORMAL"
     STATE_DIMMING = "DIMMING"
     STATE_BUG = "BUG"
     STATE_RESTORE = "RESTORE"
 
     def __init__(self, sentence: str):
-        """
-        ქმნის ბეჭდვის ლოგიკას ერთ სტრიქონზე.
-
-        :param sentence: არაცარიელი სტრიქონი
-        """
         if not isinstance(sentence, str) or not sentence.strip():
             raise ValueError("TypingEngine საჭიროებს არაცარიელ სტრიქონს")
 
@@ -42,50 +22,69 @@ class TypingEngine:
         self.pos = 0
         self.finished = False
 
-        # ...
-        self.state = self.STATE_NORMAL
+        # behavioral guard
+        self._wrong_streak = 0
+        self._last_wrong_time = 0.0
+        self._key_history = []
 
-        # ბოლო დაჭერების ისტორია (sweep detection-ისთვის)
-        self._key_history = []  # [(char, timestamp, correct)]
+        self.state = self.STATE_NORMAL
 
     # --------------------------------------------------
     # API
     # --------------------------------------------------
     @property
     def total(self) -> int:
-        """
-        სტრიქონის სიგრძე.
-        """
         return len(self.letters)
 
     def acceptable(self, ch: str) -> bool:
-        """
-        დასაშვები სიმბოლოების ფილტრი.
-        """
         return isinstance(ch, str) and len(ch) == 1
 
     def current_char(self) -> str:
-        """
-        მიმდინარე სამიზნე სიმბოლო.
-        """
         if self.finished or self.pos >= len(self.letters):
             return ""
         return self.letters[self.pos]
 
-    # backward compatibility TypingExercise-ისთვის
     def current(self) -> str:
         return self.current_char()
 
+    # --------------------------------------------------
+    # INPUT
+    # --------------------------------------------------
     def hit(self, ch: str) -> bool:
         """
         სიმბოლოზე დაჭერის დამუშავება.
-
-        :return: True თუ სწორია, False — თუ არა
         """
-        if self.finished:
+
+        # ⛔ input lock
+        if self.finished or self.is_locked():
             return False
 
-        if ch != self.letters[self.pos]:
+        correct = ch == self.letters[self.pos]
+        now = time.time()
+
+        # history
+        self._key_history.append((ch, now, correct))
+
+        # wrong streak (ერთ ასოზე)
+        if not correct:
+            if now - self._last_wrong_time <= 0.8:
+                self._wrong_streak += 1
+            else:
+                self._wrong_streak = 1
+
+            self._last_wrong_time = now
+
+            if self._wrong_streak >= 5:
+                self.enter_error_state()
+        else:
+            self._wrong_streak = 0
+
+        # burst sweep
+        if not correct and self._detect_sweep():
+            self.enter_error_state()
+
+        # core logic
+        if not correct:
             return False
 
         self.pos += 1
@@ -95,27 +94,44 @@ class TypingEngine:
 
         return True
 
-    # ==================================================
-    #   STATE CONTROL (SKELETON)
-    # ==================================================
+    # --------------------------------------------------
+    # BEHAVIOR DETECTION
+    # --------------------------------------------------
+    def _detect_sweep(self) -> bool:
+        REQUIRED_WRONG = 8
+        TIME_WINDOW = 0.7
+
+        now = time.time()
+
+        recent_wrong = [
+            ts
+            for _, ts, ok in self._key_history
+            if not ok and (now - ts) <= TIME_WINDOW
+        ]
+
+        return len(recent_wrong) >= REQUIRED_WRONG
+
+    # --------------------------------------------------
+    # STATE CONTROL
+    # --------------------------------------------------
     def enter_error_state(self):
         """
-        გადაყავს engine შეცდომის ანიმაციის მდგომარეობაში.
-        UI ამ state-ზე რეაგირებს.
+        შეცდომის რეჟიმში გადასვლა (ერთხელ).
         """
+        if self.state != self.STATE_NORMAL:
+            return
+
         self.state = self.STATE_DIMMING
 
     def reset_error_state(self):
         """
-        აბრუნებს engine-ს ნორმალურ მდგომარეობაში.
+        UI იძახებს ანიმაციის დასრულების შემდეგ.
         """
         self.state = self.STATE_NORMAL
-        self._key_history.clear()
+        self._wrong_streak = 0
+        self._last_wrong_time = 0.0
 
     def is_locked(self) -> bool:
-        """
-        აბრუნებს True-ს, თუ input დროებით დაბლოკილია.
-        """
         return self.state in (
             self.STATE_DIMMING,
             self.STATE_BUG,
