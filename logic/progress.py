@@ -5,6 +5,7 @@
 class Progress:
     """
     პროგრესის დათვლა პროცენტებში.
+    UI არ იცის.
     """
 
     def __init__(self, total: int):
@@ -13,22 +14,13 @@ class Progress:
 
     @property
     def percent(self) -> int:
-        """
-        პროგრესი პროცენტებში.
-        """
         if self.total <= 0:
             return 0
         return int((self.current / self.total) * 100)
 
     def step(self):
-        """
-        ერთი სწორი სიმბოლოს დათვლა.
-        """
         self.current += 1
 
     def reset(self, total: int):
-        """
-        ახალი დავალებისთვის განულება.
-        """
         self.total = total
         self.current = 0

@@ -1,43 +1,31 @@
 # exercises/base.py
 # KLAVA — Exercise Base Interface
 
+import tkinter as tk
+
 
 class Exercise:
     """
     სავარჯიშოს საბაზო კონტრაქტი.
 
-    Trainer იცნობს მხოლოდ ამ კლასის მეთოდებს.
-    კონკრეტულ სავარჯიშოს არ აქვს უფლება:
-    - მართოს root
-    - იცოდეს kiosk რეჟიმის არსებობა
-    - იმუშაოს menu-სთან
+    Does:
+    - განსაზღვრავს Trainer-ისთვის მინიმალურ API-ს
+
+    Does not:
+    - არ მართავს root-ს
+    - არ ეხება kiosk რეჟიმს
+    - არ მუშაობს menu-სთან
     """
 
-    def start(self):
-        """
-        სავარჯიშოს დაწყება.
-        აქ ხდება UI-ის ინიციალიზაცია.
-        """
-        raise NotImplementedError("start() არ არის იმპლემენტირებული")
+    def start(self) -> None:
+        raise NotImplementedError
 
-    def stop(self):
-        """
-        სავარჯიშოს იძულებითი დასრულება.
-        გამოიყენება secret key-ით.
-        """
-        raise NotImplementedError("stop() არ არის იმპლემენტირებული")
+    def stop(self) -> None:
+        raise NotImplementedError
 
-    def on_key(self, event):
-        """
-        კლავიატურის event-ის დამუშავება.
-        Trainer პირდაპირ გადასცემს event-ს.
-        """
-        raise NotImplementedError("on_key() არ არის იმპლემენტირებული")
+    def on_key(self, event: tk.Event) -> None:
+        raise NotImplementedError
 
     @property
     def finished(self) -> bool:
-        """
-        აბრუნებს True-ს თუ სავარჯიშო დასრულებულია.
-        Trainer ამას ამოწმებს ყოველ კლავიშზე.
-        """
-        raise NotImplementedError("finished property არ არის იმპლემენტირებული")
+        raise NotImplementedError

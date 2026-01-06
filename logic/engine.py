@@ -7,6 +7,7 @@ import time
 class TypingEngine:
     """
     ბეჭდვის ლოგიკა.
+    UI არაფერი იცის.
     """
 
     STATE_NORMAL = "NORMAL"
@@ -14,7 +15,20 @@ class TypingEngine:
     STATE_BUG = "BUG"
     STATE_RESTORE = "RESTORE"
 
-    def __init__(self, sentence: str):
+    def __init__(
+        self,
+        sentence: str,
+        *,
+        sweep_required: int = 8,
+        sweep_time_window: float = 0.7,
+        wrong_streak_limit: int = 3,
+    ):
+        """
+        sentence: მიმდინარე დასაბეჭდი სტრიქონი
+        sweep_required: სწრაფი არასწორი დაჭერების რაოდენობა
+        sweep_time_window: დროის ფანჯარა sweep-ისთვის
+        wrong_streak_limit: ზედიზედ არასწორი სიმბოლოები
+        """
         if not isinstance(sentence, str) or not sentence.strip():
             raise ValueError("TypingEngine საჭიროებს არაცარიელ სტრიქონს")
 
@@ -22,7 +36,12 @@ class TypingEngine:
         self.pos = 0
         self.finished = False
 
-        # behavioral guard
+        # behavioral guard params
+        self._sweep_required = sweep_required
+        self._sweep_time_window = sweep_time_window
+        self._wrong_streak_limit = wrong_streak_limit
+
+        # runtime state
         self._wrong_streak = 0
         self._last_wrong_time = 0.0
         self._key_history = []
@@ -36,16 +55,10 @@ class TypingEngine:
     def total(self) -> int:
         return len(self.letters)
 
-    def acceptable(self, ch: str) -> bool:
-        return isinstance(ch, str) and len(ch) == 1
-
     def current_char(self) -> str:
         if self.finished or self.pos >= len(self.letters):
             return ""
         return self.letters[self.pos]
-
-    def current(self) -> str:
-        return self.current_char()
 
     # --------------------------------------------------
     # INPUT
@@ -54,18 +67,14 @@ class TypingEngine:
         """
         სიმბოლოზე დაჭერის დამუშავება.
         """
-        # ToDo აქ არის მცდელობა კლავიატურის ქცევის კონტროლის, რაც გადასახედი და გასასწორებელია
-        # ⛔ input lock
         if self.finished or self.is_locked():
             return False
 
         correct = ch == self.letters[self.pos]
         now = time.time()
 
-        # history
         self._key_history.append((ch, now, correct))
 
-        # wrong streak (ერთ ასოზე)
         if not correct:
             if now - self._last_wrong_time <= 2.0:
                 self._wrong_streak += 1
@@ -74,19 +83,16 @@ class TypingEngine:
 
             self._last_wrong_time = now
 
-            if self._wrong_streak >= 3:
+            if self._wrong_streak >= self._wrong_streak_limit:
                 self.enter_error_state()
-        else:
-            self._wrong_streak = 0
 
-        # burst sweep
-        if not correct and self._detect_sweep():
-            self.enter_error_state()
+            if self._detect_sweep():
+                self.enter_error_state()
 
-        # core logic
-        if not correct:
             return False
 
+        # correct
+        self._wrong_streak = 0
         self.pos += 1
 
         if self.pos >= len(self.letters):
@@ -98,35 +104,25 @@ class TypingEngine:
     # BEHAVIOR DETECTION
     # --------------------------------------------------
     def _detect_sweep(self) -> bool:
-        REQUIRED_WRONG = 8
-        TIME_WINDOW = 0.7
-
         now = time.time()
 
         recent_wrong = [
             ts
             for _, ts, ok in self._key_history
-            if not ok and (now - ts) <= TIME_WINDOW
+            if not ok and (now - ts) <= self._sweep_time_window
         ]
 
-        return len(recent_wrong) >= REQUIRED_WRONG
+        return len(recent_wrong) >= self._sweep_required
 
     # --------------------------------------------------
     # STATE CONTROL
     # --------------------------------------------------
     def enter_error_state(self):
-        """
-        შეცდომის რეჟიმში გადასვლა (ერთხელ).
-        """
         if self.state != self.STATE_NORMAL:
             return
-        print(">>>>> ვაჟუილეებთ")
         self.state = self.STATE_DIMMING
 
     def reset_error_state(self):
-        """
-        UI იძახებს ანიმაციის დასრულების შემდეგ.
-        """
         self.state = self.STATE_NORMAL
         self._wrong_streak = 0
         self._last_wrong_time = 0.0

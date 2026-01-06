@@ -1,0 +1,23 @@
+{
+  "groups": {
+    "left_pinky": ["A", "Q", "Z"],
+    "left_ring": ["S", "W", "X"],
+    "left_middle": ["D", "E", "C"],
+    "left_index": ["F", "R", "V", "G", "T", "B"],
+    "right_index": ["J", "U", "M", "H", "Y", "N"],
+    "right_middle": ["K", "I"],
+    "right_ring": ["L", "O"],
+    "right_pinky": ["P"]
+  },
+  "colors": {
+    "left_pinky": "#e53935",
+    "left_ring": "#6d4c41",
+    "left_middle": "#fdd835",
+    "left_index": "#43a047",
+    "right_index": "#fb8c00",
+    "right_middle": "#3949ab",
+    "right_ring": "#8e24aa",
+    "right_pinky": "#1e88e5"
+  }
+}
+
