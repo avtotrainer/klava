@@ -13,6 +13,8 @@ KEYBOARD = [
     list("ZXCVBNM"),
 ]
 
+SPACE_KEY = " "
+
 
 class KeyBox(TypedDict):
     rect: int
@@ -71,6 +73,8 @@ class Keyboard:
 
         self.key_boxes: Dict[str, KeyBox] = {}
         self.current_target: Optional[str] = None
+
+        self.space_box: KeyBox | None = None
 
         self._draw_keys()
 
@@ -172,6 +176,48 @@ class Keyboard:
                     "base_fill": fill,
                     "outline": outline,
                 }
+        self._draw_space_key(key_w, key_h, gap, y0)
+
+    def _draw_space_key(self, key_w, key_h, gap, y0):
+        """
+        SPACE ღილაკი — ცალკე, დიდი ღილაკი.
+        """
+        space_w = key_w * 5 + gap * 4
+        space_h = key_h
+        x1 = self.width / 2 - space_w / 2
+        y1 = y0 + 3 * (key_h + gap)
+
+        outline = "#999999"
+        fill = "#eeeeee"
+
+        rect = self._round_rect(
+            x1,
+            y1,
+            x1 + space_w,
+            y1 + space_h,
+            r=self.key_radius,
+            fill=fill,
+            outline=outline,
+            width=2,
+        )
+
+        txt = self.canvas.create_text(
+            x1 + space_w / 2,
+            y1 + space_h / 2,
+            text="SPACE",
+            font=("Arial", int(space_h * 0.35), "bold"),
+            fill=self.TEXT_PALE,
+        )
+
+        self.space_box = {
+            "rect": rect,
+            "text": txt,
+            "base_fill": fill,
+            "outline": outline,
+        }
+
+        # SPACE უნდა იყოს ხელმისაწვდომი key_boxes-შიც
+        self.key_boxes[" "] = self.space_box
 
     def _base_colors(self, ch: str) -> tuple[str, str]:
         if self.use_finger_colors:

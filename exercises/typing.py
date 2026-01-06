@@ -95,5 +95,5 @@ class TypingExercise(Exercise):
             return
 
         # SPACE-სთვის target highlight მოგვიანებით დაემატება (როცა space key დავხატავთ)
-        if target != " ":
-            self.keyboard.set_target(target)
+        # if target != " ":
+        self.keyboard.set_target(target)
