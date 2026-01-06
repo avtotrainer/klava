@@ -5,7 +5,7 @@ import tkinter as tk
 
 from trainer import Trainer
 
-__version__ = "0.4.0-alfa"
+__version__ = "0.3.1-alfa"
 
 if __name__ == "__main__":
     root = tk.Tk()

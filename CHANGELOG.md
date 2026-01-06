@@ -1,20 +1,33 @@
 ## [0.3.1-alpha] — 2025-12-29
 
 ### Added
-- Finger-based color coding for all letter keys (left/right hand separation)
-- SVG-style finger legend with subtle nail indicator for educational clarity
-- Visual alignment of finger legend with corresponding keyboard key groups
+- Centralized configuration via `config.ini` (UI, training rules, keyboard parameters)
+- Keyboard visual parameters (colors, radius) moved out of hardcoded values
+- Dedicated SPACE key rendered as an independent UI element
+- Foundation for resource-based strings and localization support
+- Window title support (prepared for resource-based text)
+
+### Changed
+- Keyboard is now fully responsible for key visual states (idle / target / correct / wrong)
+- TypingExercise delegates all visual state decisions to Keyboard
+- Removal of special-case handling for SPACE in exercise logic
+- UI behavior aligned strictly with separation of concerns (UI ≠ Logic)
 
 ### Fixed
-- Restored correct SPACE key behavior and visual highlighting
-- Fixed key color reset regression after incorrect input
-- Removed invalid Tkinter drawing parameters causing runtime crashes
-- Resolved type inconsistencies in keyboard state and highlight handling
+- Restored correct SPACE key rendering and activation as a typing target
+- Fixed SPACE highlight not activating despite being rendered
+- Resolved keyboard color regression where non-active keys appeared uniform
+- Fixed `configparser.DuplicateSectionError` caused by duplicated config sections
 
 ### Internal
-- Refactored keyboard rendering pipeline
-- Isolated legend drawing logic from core keyboard layout code
-- Improved internal state consistency for key highlight lifecycle
+- Refactored keyboard rendering pipeline for extensibility
+- Normalized key registration through a single `key_boxes` source of truth
+- Prepared internal structure for future engine and QualityGate integration
+
+### Known Limitations
+- TypingEngine metrics (accuracy, CPM) are not yet enforced
+- QualityGate rules are defined but inactive
+- UI strings are still partially hardcoded (resource migration pending)
 
 ---
 
@@ -85,7 +98,7 @@
 ---
 
 ## Notes
-
 - Versions prior to 1.0.0 are considered **unstable by definition**
 - Architectural stability is prioritized over feature velocity
 - Educational correctness overrides visual experimentation
+
