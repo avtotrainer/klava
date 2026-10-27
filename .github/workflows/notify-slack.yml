@@ -33,8 +33,8 @@ jobs:
 
           webhook = os.environ.get("SLACK_WEBHOOK_URL", "")
           if not webhook:
-              print("KLAVA_SLACK_WEBHOOK_URL is not configured; Slack alert skipped.")
-              raise SystemExit(0)
+              print("KLAVA_SLACK_WEBHOOK_URL is not configured.")
+              raise SystemExit(1)
 
           prefix = (
               "*KLAVA | Test alert delivery*\n"
