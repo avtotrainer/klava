@@ -28,7 +28,7 @@
 1. GitHub: repository read/write on approved working branch; PR checks for pytest/Ruff/syntax.
 2. Google Drive: access to KLAVA root verified and currently empty. No fabricated or empty mirror files created.
 3. Slack: with the KLAVA-linked account selected, the connector successfully read workspace `T0CC5794W2X` and channel `C0CBW35EM0F` (`#new-channel`). This fixes the earlier wrong-account read failure; **no Slack messages have been sent**. Adding the channel as a ChatGPT Project Source is separately reported to fail with `Error calling MCP tools` and has not been verified successful.
-4. ChatGPT: daily synchronization-audit task enabled at **09:00 Asia/Tbilisi**. It is a separate scheduled assistant check, **not** a continuous data pipeline. ChatGPT Project Instructions/Knowledge cannot be synced by GitHub commits.
+4. ChatGPT: existing daily synchronization-audit task confirmed enabled at **09:00 Asia/Tbilisi** and updated on 2026-10-27 to inspect verified KLAVA Slack `#all-klava` and post only **new material** changes, CI failures or blockers after deduplication. This is a scheduled assistant check, **not** real-time GitHub event delivery or a continuous data pipeline. No completed daily run has yet been verified. ChatGPT Project Instructions/Knowledge cannot be synced by GitHub commits.
 5. GitHub Actions: PR checks execute on the working branch; daily `schedule` at **05:00 UTC** runs **only after the workflow is on the default branch**, requiring approval to merge PR #2. Checks cannot directly read Google Drive/Slack without separate credentials.
 
 ### Allowed actions
@@ -38,6 +38,7 @@ On an approved task, inspect versions → update canonical artifact → update n
 ### Blockers and next actions
 
 - Slack: KLAVA account verified; `#new-channel` and `#all-klava` read successfully. Initial authorized synchronization status message posted to [#all-klava](https://aklava.slack.com/archives/C0CCB8KTNGJ/p1793065796262659) on 2026-10-27. ChatGPT Project Sources attachment remains unresolved. No recurring Slack delivery trigger is yet configured.
-- Service-to-service Drive sync: choose restricted Google authorization and real source/destination requirements before activating; no tokens should be posted in chat.
+- Service-to-service Drive sync: no existing documents/mirrors in the verified empty KLAVA folder; do not set up broad write credentials before a real sync target is defined. No tokens should be posted in chat.
+- GitHub event-to-Slack immediacy: scheduled assistant audit can notify on the daily check, **not instantaneously**. A GitHub Actions Slack webhook/bot requires a separately authorized, securely stored destination credential and tested workflow; not configured.
 - ChatGPT Project Instructions/Knowledge: confirm separately, as readback/edit through GitHub is unavailable.
 - PR #2: reviewed constitution is awaiting merge approval; do not present its files as already in `main`.
