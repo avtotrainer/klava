@@ -10,7 +10,7 @@ KLAVA-ს მფლობელს სურს, რომ GitHub, Google Drive,
 
 - GitHub: `https://github.com/avtotrainer/klava`, განხილვის შტო `chore/project-foundation`, Draft PR #2.
 - Google Drive: `https://drive.google.com/drive/folders/1TH7yghuaJYTEw4_qS0p_lYdoLOWLGw4G`.
-- Slack: მიზანი `https://aklava.slack.com`; მიმდინარე მიერთების იდენტობა ჯერ არ ემთხვევა მიზანს.
+- Slack: `https://aklava.slack.com`; KLAVA-ს ანგარიში მიერთებულია და `#new-channel` წაკითხვა წარმატებით გადამოწმდა.
 - დროის სარტყელი: `Asia/Tbilisi` (UTC+04:00).
 - CI: `.github/workflows/validate.yml` — Python syntax, Ruff, pytest.
 
@@ -18,7 +18,7 @@ KLAVA-ს მფლობელს სურს, რომ GitHub, Google Drive,
 
 1. GitHub-ის PR და `docs/RESOURCE-REGISTRY.md` წაკითხულია; PR #2 Draft-ია და `main` არ შეცვლილა.
 2. Google Drive-ის KLAVA საქაღალდე წაკითხულია: შემოწმების მომენტში არ შეიცავდა ფაილებს.
-3. Slack-ის კავშირის დათვალიერებამ აჩვენა Teacher Collaboration Lab-ის არხები; **Slack-ში შეტყობინება არ გაგზავნილა**.
+3. Slack-ის პირველი შემოწმება შეცდომით იყენებდა Teacher Collaboration Lab-ის კავშირს. KLAVA-ს ცალკე დაკავშირებული ანგარიშით ხელახალმა შემოწმებამ წარმატებით წაიკითხა `T0CC5794W2X` სამუშაო სივრცის `C0CBW35EM0F` (`#new-channel`) არხი; გამოჩნდა `#all-klava` (`C0CCB8KTNGJ`) და `#social`. **Slack-ში შეტყობინება არ გაგზავნილა.**
 4. შექმნილია ChatGPT-ის დაგეგმილი აუდიტი: ყოველდღე **09:00 Asia/Tbilisi**. მისი მომავალი შესრულება ჯერ არ არის დაკვირვებული; შექმნის დადასტურება არ უდრის პირველ წარმატებულ გაშვებას.
 5. დამატებულია GitHub Actions-ის PR/static რესურსების შემოწმება და დაგეგმილი `05:00 UTC` გაშვების კონფიგურაცია. **განრიგი არ იმუშავებს default branch-ზე ამ ფაილის გაერთიანებამდე**.
 6. დამატებულია ლოკალური Markdown ბმულების **მხოლოდ წაკითხვაზე** დაფუძნებული აუდიტი. გარე URL-ები, Google Docs რევიზიები ან Slack სინქრონიზაცია ამ სკრიპტით არ მოწმდება.
@@ -45,7 +45,7 @@ ruff check .
 
 ## შეცდომები, შეზღუდვები და აღდგენა
 
-- შეცდომა: Slack-ის დაკავშირებული სივრცე სხვა პროექტს ეკუთვნის. **მიზეზი:** connector-ის scope/identity; გამოსავალია სწორი სამუშაო სივრცის დაკავშირება და იდენტობის ხელახალი დადასტურება. არ გამოიყენოთ სხვა სივრცე KLAVA-ს შეტყობინებების მისამართად.
+- საწყისი შეცდომა: ChatGPT ირჩევდა Teacher Collaboration Lab-ის ანგარიშს, რის გამოც KLAVA-ს არხი აბრუნებდა `channel_not_found`. KLAVA-ს დაკავშირებული ანგარიშით არხის წაკითხვა დადასტურებულია. Project Sources-ში დამატება მაინც აბრუნებს `channel_not_found` — ეს ცალკე, ჯერ გადაუჭრელი შეზღუდვაა. არ გათიშოთ სხვა პროექტის ანგარიში ამ შეცდომის მისაჩქმალად.
 - შეზღუდვა: Drive-ის საქაღალდეში ჯერ არ არის დაკავშირებული პედაგოგიური რესურსი; არ უნდა შეიქმნას ხელოვნური დუბლიკატები.
 - შეზღუდვა: ChatGPT Project Instructions და Knowledge დამოუკიდებლად არ ნახლდება GitHub commit-ით.
 - უსაფრთხოება: არცერთი ავტომატიზაცია არ ცვლის უშუალოდ `main`-ს ან Google Docs-ის დამოუკიდებელ რედაქციას.
