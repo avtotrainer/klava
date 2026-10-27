@@ -1,0 +1,44 @@
+"""Opt-in real Tk widget integration; this is not human visual acceptance."""
+import os
+import sys
+import tkinter as tk
+from types import SimpleNamespace
+
+import pytest
+
+from trainer import Trainer
+
+pytestmark = pytest.mark.skipif(
+    os.environ.get("KLAVA_GUI_TEST") != "1", reason="Requires a desktop/Tk display"
+)
+
+
+def test_real_widgets_session_and_reload(tmp_path, monkeypatch):
+    monkeypatch.setattr(sys, "frozen", True, raising=False)
+    monkeypatch.setattr(sys, "executable", str(tmp_path / "KLAVA.exe"))
+    monkeypatch.chdir(tmp_path)
+    exercises = tmp_path / "exercises.txt"
+    exercises.write_text("A B\nB\n", encoding="utf-8")
+    root = tk.Tk()
+    try:
+        trainer = Trainer(root)
+        root.update()
+        assert set(trainer.keyboard.key_boxes) == set("ABCDEFGHIJKLMNOPQRSTUVWXYZ ")
+        trainer.start_training()
+        root.update()
+        trainer.on_key(SimpleNamespace(keysym="b"))
+        assert trainer.exercise.pos == 0
+        box = trainer.keyboard.key_boxes["B"]
+        assert trainer.ui.canvas.itemcget(box["rect"], "fill") == trainer.keyboard.COLOR_WRONG
+        for key in ["a", "space", "b", "b"]:
+            trainer.on_key(SimpleNamespace(keysym=key))
+            root.update()
+        assert not trainer.training_active
+        exercises.write_text("B A\nA\n", encoding="utf-8")
+        trainer.start_training()
+        root.update()
+        assert trainer.exercise.sentence == "B A"
+        trainer._secret_finish()
+        assert not trainer.training_active
+    finally:
+        root.destroy()

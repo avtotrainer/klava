@@ -8,7 +8,7 @@ from tkinter import messagebox
 from typing import Optional
 
 from logic.config import Config
-from logic.resources import Resources
+from logic.resources import Resources, exercise_path
 
 from ui.canvas import Canvas
 from ui.keyboard import Keyboard
@@ -232,12 +232,17 @@ class Trainer:
     # HELPERS
     # ==================================================
     def _load_sentences(self) -> list[str]:
-        path = self.cfg.get("training", "sentence_file", fallback="data/sentences.txt")
+        path = exercise_path(
+            self.cfg.get("training", "sentence_file", fallback="data/sentences.txt")
+        )
 
         try:
-            with open(path, encoding="utf-8") as f:
+            with open(path, encoding="utf-8-sig") as f:
                 lines = [line.strip().upper() for line in f if line.strip()]
-        except Exception as e:
+        except UnicodeError as e:
+            msg = self.res.text("errors", "file_encoding").format(path=path)
+            raise RuntimeError(msg) from e
+        except OSError as e:
             msg = self.res.text("errors", "file_missing").format(path=path, err=str(e))
             raise RuntimeError(msg) from e
 

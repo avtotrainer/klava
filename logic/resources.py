@@ -6,6 +6,20 @@ from __future__ import annotations
 from configparser import ConfigParser, SectionProxy
 from pathlib import Path
 import json
+import sys
+
+
+def bundled_path(path: str) -> Path:
+    """Resolve read-only assets in the source tree or PyInstaller extraction root."""
+    # PyInstaller sets module __file__ inside its temporary onefile bundle.
+    return Path(__file__).resolve().parent.parent / path
+
+
+def exercise_path(source_path: str) -> Path:
+    """Locate editable exercises beside the EXE; preserve source-mode config."""
+    if getattr(sys, "frozen", False):
+        return Path(sys.executable).resolve().parent / "exercises.txt"
+    return bundled_path(source_path)
 
 
 class Resources:
@@ -21,7 +35,7 @@ class Resources:
     """
 
     def __init__(self, base_dir: str, language: str, theme_name: str) -> None:
-        self.base = Path(base_dir)
+        self.base = bundled_path(base_dir)
         self.language = language
         self.theme_name = theme_name
 

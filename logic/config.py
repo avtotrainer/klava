@@ -2,7 +2,7 @@
 # KLAVA — Config loader
 
 from configparser import ConfigParser
-from pathlib import Path
+from logic.resources import bundled_path
 
 
 class Config:
@@ -18,8 +18,7 @@ class Config:
     """
 
     def __init__(self, path: str = "config.ini") -> None:
-        base_dir = Path(__file__).resolve().parent.parent
-        self.path = base_dir / path
+        self.path = bundled_path(path)
 
         if not self.path.exists():
             raise FileNotFoundError(f"Config file not found: {self.path}")

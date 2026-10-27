@@ -1,6 +1,8 @@
 ## [Unreleased]
 
 ### Added
+- Windows x64 portable onefile build, exact two-file ZIP validation, and PR/manual Actions artifacts.
+- Portable path, UTF-8 input, session reload, packaging and opt-in real Tk regression tests.
 - Authorized daily 09:00 Asia/Tbilisi cross-resource audit through a scheduled ChatGPT task (first execution not yet verified).
 - Read-only local Markdown link audit, regression tests, and scheduled GitHub Actions configuration (default-branch activation pending).
 - Georgian technical handout for synchronization, external-access limitations, safety, and rollback.
@@ -9,6 +11,8 @@
 - Project knowledge, resource registry, and draft operational ChatGPT instructions.
 
 ### Changed
+- Frozen builds read editable `exercises.txt` beside the executable; source runs preserve configured exercises.
+- Resource paths no longer depend on the current working directory; invalid exercise encoding gets a localized UTF-8 error.
 - Documentation aligned with implemented code and documented learning requirements.
 
 ### Internal
