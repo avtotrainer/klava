@@ -13,7 +13,7 @@
 | AI Project Instructions (reference draft) | [CHATGPT-PROJECT-INSTRUCTIONS.md](CHATGPT-PROJECT-INSTRUCTIONS.md) | ChatGPT Project Settings (not accessible for readback) | English | 1.2 | Public (GitHub); Project visibility unknown | unknown | 2026-10-27 |
 | Synchronization runbook | [KLAVA-SYNC-RUNBOOK.md](KLAVA-SYNC-RUNBOOK.md) | None | Georgian | 1.0 | Public | canonical-only | 2026-10-27 |
 | Teaching resources | https://drive.google.com/drive/folders/1TH7yghuaJYTEw4_qS0p_lYdoLOWLGw4G | None | Georgian | Empty root at verification | Access restricted/unspecified | canonical-only | 2026-10-27 |
-| Slack coordination | https://aklava.slack.com | [#new-channel](https://app.slack.com/client/T0CC5794W2X/C0CBW35EM0F) | Georgian | Workspace and channel read verified; Project Source linking reported MCP error | Workspace/channel readable; other visibility unknown | unknown | 2026-10-27 |
+| Slack coordination | https://aklava.slack.com | [#new-channel](https://app.slack.com/client/T0CC5794W2X/C0CBW35EM0F) | Georgian | Workspace and channel read verified again; Project Source linking separately fails with MCP error | Workspace/channel readable; other visibility unknown | unknown | 2026-10-27 |
 
 ## Sync modes and boundaries
 
@@ -37,7 +37,7 @@ On an approved task, inspect versions → update canonical artifact → update n
 
 ### Blockers and next actions
 
-- Slack: workspace and channel read access confirmed; diagnose the separate ChatGPT Project Source attachment error before claiming a linked source. Slack messages still require destination verification and authorization.
+- Slack: workspace `T0CC5794W2X` and `#new-channel` are accessible through the KLAVA-linked account; `#all-klava` (`C0CCB8KTNGJ`) also appears in the same workspace. Project Sources linking is separately unresolved. Before notification automation, confirm the notification destination and authorized posting scope.
 - Service-to-service Drive sync: choose restricted Google authorization and real source/destination requirements before activating; no tokens should be posted in chat.
 - ChatGPT Project Instructions/Knowledge: confirm separately, as readback/edit through GitHub is unavailable.
 - PR #2: reviewed constitution is awaiting merge approval; do not present its files as already in `main`.
