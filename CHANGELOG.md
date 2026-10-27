@@ -1,3 +1,18 @@
+## [Unreleased]
+
+### Added
+- Draft project constitution and rules migration matrix for owner review.
+- Focused behavioral regression tests and GitHub Actions validation in the project foundation branch.
+- Project knowledge, resource registry, and draft operational ChatGPT instructions.
+
+### Changed
+- Documentation aligned with implemented code and documented learning requirements.
+
+### Internal
+- Governance proposal remains unratified; existing Project Instructions continue to apply until separately replaced.
+
+---
+
 ## [0.3.1-alpha] — 2025-12-29
 
 ### Added
