@@ -5,6 +5,12 @@ on:
     branches: [main]
   pull_request:
   workflow_dispatch:
+    inputs:
+      verify_failure_notification:
+        description: "Controlled failure solely to verify Slack failure alerts; does not modify application code"
+        type: boolean
+        required: false
+        default: false
   # 05:00 UTC = 09:00 Asia/Tbilisi; schedules operate on the default branch only.
   schedule:
     - cron: "0 5 * * *"
@@ -42,3 +48,14 @@ jobs:
 
       - name: Audit canonical Markdown links
         run: python scripts/check_resource_links.py
+
+  failure-notification-test:
+    name: Controlled notification path verification
+    # Only a manual run explicitly opting in may produce this intentional failure.
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.verify_failure_notification == true }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger intentionally failed check for alert testing
+        run: |
+          echo "::error::Intentional CI failure to verify Slack webhook notification; no application files modified."
+          exit 1
