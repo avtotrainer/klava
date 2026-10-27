@@ -39,6 +39,6 @@ On an approved task, inspect versions → update canonical artifact → update n
 
 - Slack: KLAVA account verified; `#new-channel` and `#all-klava` read successfully. Initial authorized synchronization status message posted to [#all-klava](https://aklava.slack.com/archives/C0CCB8KTNGJ/p1793065796262659) on 2026-10-27. ChatGPT Project Sources attachment remains unresolved. Daily ChatGPT audit includes conditional Slack notifications, but an actual new-change alert from that schedule is not yet verified.
 - Service-to-service Drive sync: no existing documents/mirrors in the verified empty KLAVA folder; do not set up broad write credentials before a real sync target is defined. No tokens should be posted in chat.
-- GitHub event-to-Slack immediacy: scheduled assistant audit can notify on the daily check, **not instantaneously**. A GitHub Actions Slack webhook/bot requires a separately authorized, securely stored destination credential and tested workflow; not configured.
+- GitHub event-to-Slack immediacy: proposed [failure alert workflow](../.github/workflows/notify-slack.yml) is now on the review branch. **Not active** until merged to default branch and scoped `KLAVA_SLACK_WEBHOOK_URL` secret added; webhook delivery not tested.
 - ChatGPT Project Instructions/Knowledge: confirm separately, as readback/edit through GitHub is unavailable.
 - PR #2: reviewed constitution is awaiting merge approval; do not present its files as already in `main`.
