@@ -36,8 +36,12 @@ jobs:
               print("KLAVA_SLACK_WEBHOOK_URL is not configured; Slack alert skipped.")
               raise SystemExit(0)
 
-          text = (
-              ("*KLAVA | Test alert delivery*\n" if os.environ["CONCLUSION"] == "test" else "*KLAVA | CI failure*\n")
+          prefix = (
+              "*KLAVA | Test alert delivery*\n"
+              if os.environ["CONCLUSION"] == "test"
+              else "*KLAVA | CI failure*\n"
+          )
+          text = prefix + (
               f"Workflow: {os.environ['TITLE']}\n"
               f"Branch: {os.environ['BRANCH']}\n"
               f"Status: {os.environ['CONCLUSION']}\n"
