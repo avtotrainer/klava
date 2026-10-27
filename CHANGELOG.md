@@ -1,6 +1,9 @@
 ## [Unreleased]
 
 ### Added
+- Authorized daily 09:00 Asia/Tbilisi cross-resource audit through a scheduled ChatGPT task (first execution not yet verified).
+- Read-only local Markdown link audit, regression tests, and scheduled GitHub Actions configuration (default-branch activation pending).
+- Georgian technical handout for synchronization, external-access limitations, safety, and rollback.
 - Draft project constitution and rules migration matrix for owner review.
 - Focused behavioral regression tests and GitHub Actions validation in the project foundation branch.
 - Project knowledge, resource registry, and draft operational ChatGPT instructions.
