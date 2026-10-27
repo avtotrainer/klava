@@ -9,12 +9,14 @@
       pkgs = import nixpkgs { inherit system; };
       python = pkgs.python3.withPackages (ps: [
         ps.tkinter
+        ps.pytest
       ]);
     in
     {
       devShells.${system}.default = pkgs.mkShell {
         packages = [
           python
+          pkgs.ruff
         ];
       };
     };

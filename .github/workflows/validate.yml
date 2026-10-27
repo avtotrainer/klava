@@ -1,0 +1,37 @@
+name: Validate KLAVA
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    name: Python syntax, Ruff, pytest
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install verification tools
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pytest ruff
+
+      - name: Validate Python syntax
+        run: python -m compileall -q main.py trainer.py logic ui exercises tests
+
+      - name: Check static code issues
+        run: ruff check .
+
+      - name: Run regression tests
+        run: python -m pytest -q

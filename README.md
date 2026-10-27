@@ -168,7 +168,19 @@ GitHub-ში არსებული დოკუმენტები:
 
 ცვლილებების ისტორია: [CHANGELOG.md](CHANGELOG.md).
 
-## 10. განვითარების პრინციპები
+## 10. ტესტირება და შემოწმება
+
+განვითარების გარემოში (მაგალითად, `nix develop`-ის შემდეგ) გაუშვით:
+
+```bash
+python -m compileall -q main.py trainer.py logic ui exercises tests
+ruff check .
+python -m pytest -q
+```
+
+CI შემოწმება განსაზღვრულია `.github/workflows/validate.yml`-ში. `pytest` მოიცავს ლოგიკისა და სავარჯიშოს ფეიკ-UI ტესტებს; ის **არ ადასტურებს** რეალური GUI-ის, Kiosk რეჟიმის ან პედაგოგიური Quality Gate-ის სრულ გამართულობას.
+
+## 11. განვითარების პრინციპები
 
 პროექტის განვითარება ეფუძნება:
 
