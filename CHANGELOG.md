@@ -1,5 +1,8 @@
 ## [Unreleased]
 
+### Fixed
+- Resetting the behavioral guard clears prior incorrect key history so a new attempt is not immediately locked by earlier sweep detections.
+
 ### Added
 - Authorized daily 09:00 Asia/Tbilisi cross-resource audit through a scheduled ChatGPT task (first execution not yet verified).
 - Read-only local Markdown link audit, regression tests, and scheduled GitHub Actions configuration (default-branch activation pending).

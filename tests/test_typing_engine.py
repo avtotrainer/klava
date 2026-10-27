@@ -72,3 +72,20 @@ def test_fast_wrong_keys_trigger_sweep_guard(monkeypatch):
 
     assert engine.state == engine.STATE_DIMMING
     assert engine.pos == 0
+
+
+def test_reset_clears_sweep_history(monkeypatch):
+    """წინა შეცდომების ისტორია აღდგენის შემდეგ ახალ მცდელობას არ ბლოკავს."""
+    monkeypatch.setattr(engine_module.time, "time", lambda: 100.0)
+    engine = TypingEngine(
+        "A", wrong_streak_limit=99, sweep_required=3, sweep_time_window=0.7
+    )
+    for key in ("X", "Y", "Z"):
+        engine.hit(key)
+    assert engine.is_locked()
+
+    engine.reset_error_state()
+    assert not engine.is_locked()
+    assert engine.hit("X") is False
+    assert not engine.is_locked()
+    assert engine.hit("A") is True

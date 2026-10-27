@@ -123,9 +123,12 @@ class TypingEngine:
         self.state = self.STATE_DIMMING
 
     def reset_error_state(self):
+        """Clear the lock and all evidence from the previous error episode."""
         self.state = self.STATE_NORMAL
         self._wrong_streak = 0
         self._last_wrong_time = 0.0
+        # Old wrong keys must not immediately re-trigger sweep detection.
+        self._key_history.clear()
 
     def is_locked(self) -> bool:
         return self.state in (
