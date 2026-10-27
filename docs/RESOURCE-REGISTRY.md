@@ -37,7 +37,7 @@ On an approved task, inspect versions → update canonical artifact → update n
 
 ### Blockers and next actions
 
-- Slack: workspace `T0CC5794W2X` and `#new-channel` are accessible through the KLAVA-linked account; `#all-klava` (`C0CCB8KTNGJ`) also appears in the same workspace. Project Sources linking is separately unresolved. Before notification automation, confirm the notification destination and authorized posting scope.
+- Slack: KLAVA account verified; `#new-channel` and `#all-klava` read successfully. Initial authorized synchronization status message posted to [#all-klava](https://aklava.slack.com/archives/C0CCB8KTNGJ/p1793065796262659) on 2026-10-27. ChatGPT Project Sources attachment remains unresolved. No recurring Slack delivery trigger is yet configured.
 - Service-to-service Drive sync: choose restricted Google authorization and real source/destination requirements before activating; no tokens should be posted in chat.
 - ChatGPT Project Instructions/Knowledge: confirm separately, as readback/edit through GitHub is unavailable.
 - PR #2: reviewed constitution is awaiting merge approval; do not present its files as already in `main`.
