@@ -105,3 +105,24 @@ Rollback: დაბრუნდით წინა build-ზე, შეინა
 სამუშაო შტო: `feat/windows-portable`; merge მხოლოდ მფლობელის ცალკე თანხმობით.
 CI run-ისა და Artifact-ის ფაქტობრივი შედეგები დაფიქსირდება PR-ის ანგარიშში.
 Drive mirror არ არის საჭირო: ეს GitHub-ის ტექნიკური პროცედურაა.
+
+## შესრულების ჩანაწერი — 2026-10-28
+
+- [PR #7](https://github.com/avtotrainer/klava/pull/7), build commit
+  `36891865dc080032f6e73415f61ceab1186e1eb6`.
+- [Windows run 40575875572](https://github.com/avtotrainer/klava/actions/runs/40575875572):
+  წარმატება; 28 regression ტესტი, 1 ცალკე რეალური Tk ტესტი, PyInstaller აწყობა,
+  ZIP/CRC შემოწმება და გადატანილი EXE-ის KLAVA ფანჯრის გაშვება გავიდა.
+- [Linux validation](https://github.com/avtotrainer/klava/actions/runs/40575875385): წარმატება.
+- [Build Artifact](https://github.com/avtotrainer/klava/actions/runs/40575875572/artifacts/12767716478):
+  10,883,895 ბაიტი; მოქმედების ვადა 2026-11-26. GitHub-ის ჩამოტვირთვის გარე ZIP
+  შეიცავს `KLAVA-windows-x64.zip`-ს; სწორედ შიდა გასავრცელებელ ZIP-შია ორი ფაილი.
+- ლოკალურად pytest: 28 passed / 1 skipped (desktop არ იყო); Ruff, compileall და
+  14 Markdown ფაილის ლოკალური ბმულების შემოწმება წარმატებულია.
+- პირდაპირი `git push` ვერ შესრულდა HTTPS ავტორიზაციის არქონის გამო. GitHub
+  connector-ით შეიქმნა commit და PR; remote tree SHA ზუსტად დაემთხვა ლოკალურ
+  შემოწმებულ tree-ს: `76f64db9e58a05ee1574397a49a622dcacb952cf`.
+- საწყის lint შემოწმებაზე აღმოჩენილი გამოუყენებელი import ამოღებულია; საბოლოო Ruff მწვანეა.
+- არც main merge, არც Release, არც Drive mirror და არც Slack გაგზავნა შესრულებულა.
+- შემდეგი მოქმედება: Windows 10/11 desktop-ზე ზემოთ მოცემული ხელით მიღების ტესტი;
+  შემდეგ მფლობელის ცალკე გადაწყვეტილება PR #7-ის გაერთიანებაზე.
