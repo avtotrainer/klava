@@ -4,13 +4,17 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
+  # 05:00 UTC = 09:00 Asia/Tbilisi; schedules operate on the default branch only.
+  schedule:
+    - cron: "0 5 * * *"
 
 permissions:
   contents: read
 
 jobs:
   tests:
-    name: Python syntax, Ruff, pytest
+    name: Python syntax, Ruff, pytest, resource links
     runs-on: ubuntu-latest
 
     steps:
@@ -28,10 +32,13 @@ jobs:
           python -m pip install pytest ruff
 
       - name: Validate Python syntax
-        run: python -m compileall -q main.py trainer.py logic ui exercises tests
+        run: python -m compileall -q main.py trainer.py logic ui exercises scripts tests
 
       - name: Check static code issues
         run: ruff check .
 
       - name: Run regression tests
         run: python -m pytest -q
+
+      - name: Audit canonical Markdown links
+        run: python scripts/check_resource_links.py
