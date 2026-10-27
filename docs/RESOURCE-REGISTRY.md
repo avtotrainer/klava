@@ -13,7 +13,7 @@
 | AI Project Instructions (reference draft) | [CHATGPT-PROJECT-INSTRUCTIONS.md](CHATGPT-PROJECT-INSTRUCTIONS.md) | ChatGPT Project Settings (not accessible for readback) | English | 1.2 | Public (GitHub); Project visibility unknown | unknown | 2026-10-27 |
 | Synchronization runbook | [KLAVA-SYNC-RUNBOOK.md](KLAVA-SYNC-RUNBOOK.md) | None | Georgian | 1.0 | Public | canonical-only | 2026-10-27 |
 | Teaching resources | https://drive.google.com/drive/folders/1TH7yghuaJYTEw4_qS0p_lYdoLOWLGw4G | None | Georgian | Empty root at verification | Access restricted/unspecified | canonical-only | 2026-10-27 |
-| Slack coordination | https://aklava.slack.com | None | Georgian | Target workspace unverified | Unknown | unknown | 2026-10-27 |
+| Slack coordination | https://aklava.slack.com | [#new-channel](https://app.slack.com/client/T0CC5794W2X/C0CBW35EM0F) | Georgian | Workspace and channel read verified; Project Source linking reported MCP error | Workspace/channel readable; other visibility unknown | unknown | 2026-10-27 |
 
 ## Sync modes and boundaries
 
@@ -27,7 +27,7 @@
 
 1. GitHub: repository read/write on approved working branch; PR checks for pytest/Ruff/syntax.
 2. Google Drive: access to KLAVA root verified and currently empty. No fabricated or empty mirror files created.
-3. Slack: current connector exposes `Teacher Collaboration Lab` channels; target `aklava.slack.com` identity **not verified**. No KLAVA Slack messages sent.
+3. Slack: with the KLAVA-linked account selected, the connector successfully read workspace `T0CC5794W2X` and channel `C0CBW35EM0F` (`#new-channel`). This fixes the earlier wrong-account read failure; **no Slack messages have been sent**. Adding the channel as a ChatGPT Project Source is separately reported to fail with `Error calling MCP tools` and has not been verified successful.
 4. ChatGPT: daily synchronization-audit task enabled at **09:00 Asia/Tbilisi**. It is a separate scheduled assistant check, **not** a continuous data pipeline. ChatGPT Project Instructions/Knowledge cannot be synced by GitHub commits.
 5. GitHub Actions: PR checks execute on the working branch; daily `schedule` at **05:00 UTC** runs **only after the workflow is on the default branch**, requiring approval to merge PR #2. Checks cannot directly read Google Drive/Slack without separate credentials.
 
@@ -37,7 +37,7 @@ On an approved task, inspect versions → update canonical artifact → update n
 
 ### Blockers and next actions
 
-- Slack: connect and identify the correct KLAVA workspace before any message.
+- Slack: workspace and channel read access confirmed; diagnose the separate ChatGPT Project Source attachment error before claiming a linked source. Slack messages still require destination verification and authorization.
 - Service-to-service Drive sync: choose restricted Google authorization and real source/destination requirements before activating; no tokens should be posted in chat.
 - ChatGPT Project Instructions/Knowledge: confirm separately, as readback/edit through GitHub is unavailable.
 - PR #2: reviewed constitution is awaiting merge approval; do not present its files as already in `main`.
