@@ -3,6 +3,7 @@ name: Notify KLAVA on CI failure
 # Runs on the default branch using metadata from the completed validation workflow.
 # Does not check out or execute pull-request code.
 on:
+  workflow_dispatch:
   workflow_run:
     workflows: ["Validate KLAVA"]
     types: [completed]
@@ -12,17 +13,17 @@ permissions:
 
 jobs:
   alert:
-    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'failure' }}
     runs-on: ubuntu-latest
     steps:
       - name: Send scoped alert to KLAVA Slack
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.KLAVA_SLACK_WEBHOOK_URL }}
-          RUN_URL: ${{ github.event.workflow_run.html_url }}
-          RUN_ID: ${{ github.event.workflow_run.id }}
-          BRANCH: ${{ github.event.workflow_run.head_branch }}
-          TITLE: ${{ github.event.workflow_run.name }}
-          CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+          RUN_URL: ${{ github.event_name == 'workflow_dispatch' && format('{0}/{1}/actions/runs/{2}', github.server_url, github.repository, github.run_id) || github.event.workflow_run.html_url }}
+          RUN_ID: ${{ github.event_name == 'workflow_dispatch' && github.run_id || github.event.workflow_run.id }}
+          BRANCH: ${{ github.event_name == 'workflow_dispatch' && github.ref_name || github.event.workflow_run.head_branch }}
+          TITLE: ${{ github.event_name == 'workflow_dispatch' && 'Manual alert delivery test' || github.event.workflow_run.name }}
+          CONCLUSION: ${{ github.event_name == 'workflow_dispatch' && 'test' || github.event.workflow_run.conclusion }}
         run: |
           python - <<'PY'
           import json
@@ -32,11 +33,15 @@ jobs:
 
           webhook = os.environ.get("SLACK_WEBHOOK_URL", "")
           if not webhook:
-              print("KLAVA_SLACK_WEBHOOK_URL is not configured; Slack alert skipped.")
-              raise SystemExit(0)
+              print("KLAVA_SLACK_WEBHOOK_URL is not configured.")
+              raise SystemExit(1)
 
-          text = (
-              "*KLAVA | CI failure*\n"
+          prefix = (
+              "*KLAVA | Test alert delivery*\n"
+              if os.environ["CONCLUSION"] == "test"
+              else "*KLAVA | CI failure*\n"
+          )
+          text = prefix + (
               f"Workflow: {os.environ['TITLE']}\n"
               f"Branch: {os.environ['BRANCH']}\n"
               f"Status: {os.environ['CONCLUSION']}\n"
