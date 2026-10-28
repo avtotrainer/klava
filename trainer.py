@@ -60,6 +60,10 @@ class Trainer:
             self._brand_icon = tk.PhotoImage(file=str(icon_path))
             self.root.iconphoto(True, self._brand_icon)
 
+        # Windowed cover on launch; existing kiosk/fullscreen behavior starts with training.
+        self.root.geometry("800x600")
+        self.root.minsize(800, 600)
+
         # ── STATE ──────────────────────────────────
         self.training_active: bool = False
         self.exercise: Optional[TypingExercise] = None
