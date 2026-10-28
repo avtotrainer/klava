@@ -5,7 +5,7 @@ $name = 'klavatest' + [Guid]::NewGuid().ToString('N').Substring(0, 6)
 $password = ConvertTo-SecureString ('Aa9!' + [Guid]::NewGuid().ToString('N')) -AsPlainText -Force
 $testRoot = Join-Path $env:PUBLIC $name
 New-Item -ItemType Directory -Path (Join-Path $testRoot 'dist') -Force | Out-Null
-Copy-Item 'dist/KLAVA-User-Setup-x64.exe' (Join-Path $testRoot 'dist')
+Copy-Item 'dist/KLAVA-Setup-x64.exe' (Join-Path $testRoot 'dist')
 Copy-Item 'scripts/test_windows_installer.ps1' $testRoot
 try {
     $user = New-LocalUser -Name $name -Password $password -AccountNeverExpires
