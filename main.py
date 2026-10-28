@@ -1,7 +1,7 @@
 # main.py
 # KLAVA — Entry point
 
-import os
+import subprocess
 import sys
 import tkinter as tk
 from tkinter import messagebox
@@ -21,7 +21,7 @@ def main() -> None:
     try:
         path = prepare_exercise_file(source)
         if "--edit-exercises" in sys.argv:
-            os.startfile(path)  # Windows Start-menu editor shortcut; no elevation.
+            subprocess.Popen(["notepad.exe", str(path)])  # .klv has no required file association.
             root.destroy()
             return
     except OSError as exc:
