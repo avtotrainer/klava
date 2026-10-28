@@ -18,7 +18,7 @@ jobs:
           python-version: '3.11'
           architecture: x64
       - name: Install build and verification tools
-        run: python -m pip install pyinstaller==6.16.0 pytest==8.4.2 ruff==0.14.2
+        run: python -m pip install pyinstaller==6.16.0 pytest==8.4.2 ruff==0.14.2 pillow==11.3.0
       - name: Check code and regression tests
         run: |
           python -m compileall -q main.py trainer.py logic ui exercises scripts tests
@@ -29,6 +29,8 @@ jobs:
         env:
           KLAVA_GUI_TEST: '1'
         run: python -m pytest -q tests/test_trainer_gui.py
+      - name: Generate Windows branding assets
+        run: python scripts/generate_brand_assets.py
       - name: Build standalone windowed executable
         run: python -m PyInstaller --clean --noconfirm KLAVA.spec
       - name: Assemble and verify two-file ZIP
