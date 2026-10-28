@@ -83,7 +83,8 @@ class Canvas:
         self.canvas.coords(self.cover_text, width / 2, height / 2)
         if self._welcome_visible:
             self._welcome_image = welcome_image(width, height)
-            self.canvas.itemconfigure(self.cover_image, image=self._welcome_image)
+            if self._welcome_image is not None:
+                self.canvas.itemconfigure(self.cover_image, image=self._welcome_image)
         size = max(16, min(self.font_cover, int(min(width / 13, height / 8))))
         self.canvas.itemconfigure(
             self.cover_text,
@@ -106,6 +107,10 @@ class Canvas:
         width = max(1, self.canvas.winfo_width())
         height = max(1, self.canvas.winfo_height())
         self._welcome_image = welcome_image(width, height)
+        if self._welcome_image is None:
+            self._welcome_visible = False
+            self.show_cover("KLAVA")
+            return
         self.canvas.itemconfigure(self.cover_image, image=self._welcome_image, state="normal")
         self.canvas.itemconfigure(self.cover_text, text="", state="hidden")
         self.canvas.itemconfigure("cover", state="normal")
