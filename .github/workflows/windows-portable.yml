@@ -41,6 +41,8 @@ jobs:
           $target = Join-Path $env:RUNNER_TEMP 'KLAVA ქართული portable'
           Expand-Archive dist/KLAVA-windows-x64.zip $target
           $exe = Join-Path $target 'KLAVA/KLAVA.exe'
+          $originalLocalAppData = $env:LOCALAPPDATA
+          $env:LOCALAPPDATA = Join-Path $env:RUNNER_TEMP 'KLAVA-portable-test-profile'
           $process = Start-Process -FilePath $exe -WorkingDirectory $env:RUNNER_TEMP -PassThru
           try {
             $found = $false
@@ -54,6 +56,7 @@ jobs:
             Write-Output 'Verified: relocated frozen EXE opened its KLAVA Tk window.'
           } finally {
             taskkill /PID $process.Id /T /F
+            $env:LOCALAPPDATA = $originalLocalAppData
           }
           $names = @(Get-ChildItem (Join-Path $target 'KLAVA') -Force | Select-Object -ExpandProperty Name | Sort-Object)
           if (($names -join ',') -cne 'exercises.klv,KLAVA.exe') { throw "Unexpected output files: $names" }
