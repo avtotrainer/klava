@@ -24,4 +24,5 @@ exe = EXE(
     strip=False,
     upx=False,
     console=False,
+    icon=str(root / "resources" / "branding" / "generated" / "KLAVA.ico"),
 )
