@@ -77,6 +77,9 @@ jobs:
       - name: Verify install and uninstall as a real standard user
         shell: pwsh
         run: ./scripts/test_standard_user_install.ps1
+      - name: Verify all-users installation and uninstall
+        shell: pwsh
+        run: ./scripts/test_all_users_install.ps1
       - name: Upload Windows installer
         uses: actions/upload-artifact@v4
         with:
