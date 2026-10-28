@@ -17,6 +17,7 @@ OutputBaseFilename=KLAVA-User-Setup-x64
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
+SetupIconFile=..\\resources\\branding\\generated\\KLAVA.ico
 UninstallDisplayIcon={app}\KLAVA.exe
 CloseApplications=yes
 RestartApplications=no
