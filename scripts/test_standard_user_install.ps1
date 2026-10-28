@@ -21,7 +21,7 @@ $ErrorActionPreference = 'Stop'
 Start-Transcript -Path (Join-Path $PSScriptRoot 'standard-user.log')
 try {
     Set-Location $PSScriptRoot
-    $env:LOCALAPPDATA = [Environment]::GetFolderPath('LocalApplicationData')
+    $env:LOCALAPPDATA = [Environment]::GetFolderPath('LocalApplicationData', 'Create')
     $env:TEMP = Join-Path $env:LOCALAPPDATA 'Temp'
     $env:TMP = $env:TEMP
     New-Item -ItemType Directory -Path $env:TEMP -Force | Out-Null
