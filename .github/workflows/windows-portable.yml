@@ -1,4 +1,4 @@
-name: Windows Portable
+name: Windows Installer
 
 on:
   pull_request:
@@ -33,41 +33,7 @@ jobs:
         run: python scripts/generate_brand_assets.py
       - name: Build standalone windowed executable
         run: python -m PyInstaller --clean --noconfirm KLAVA.spec
-      - name: Assemble and verify two-file ZIP
-        run: python scripts/package_windows.py
-      - name: Launch relocated executable from unrelated working directory
-        shell: pwsh
-        run: |
-          $target = Join-Path $env:RUNNER_TEMP 'KLAVA ქართული portable'
-          Expand-Archive dist/KLAVA-windows-x64.zip $target
-          $exe = Join-Path $target 'KLAVA/KLAVA.exe'
-          $originalLocalAppData = $env:LOCALAPPDATA
-          $env:LOCALAPPDATA = Join-Path $env:RUNNER_TEMP 'KLAVA-portable-test-profile'
-          $process = Start-Process -FilePath $exe -WorkingDirectory $env:RUNNER_TEMP -PassThru
-          try {
-            $found = $false
-            for ($i = 0; $i -lt 60; $i++) {
-              Start-Sleep -Seconds 1
-              $window = Get-Process | Where-Object { $_.Path -eq $exe -and $_.MainWindowTitle -like 'KLAVA*' }
-              if ($window) { $found = $true; break }
-              if ($process.HasExited) { throw "EXE exited before opening its window" }
-            }
-            if (-not $found) { throw 'No KLAVA window appeared within 60 seconds' }
-            Write-Output 'Verified: relocated frozen EXE opened its KLAVA Tk window.'
-          } finally {
-            taskkill /PID $process.Id /T /F
-            $env:LOCALAPPDATA = $originalLocalAppData
-          }
-          $names = @(Get-ChildItem (Join-Path $target 'KLAVA') -Force | Select-Object -ExpandProperty Name | Sort-Object)
-          if (($names -join ',') -cne 'exercises.klv,KLAVA.exe') { throw "Unexpected output files: $names" }
-      - name: Upload portable ZIP
-        uses: actions/upload-artifact@v4
-        with:
-          name: KLAVA-windows-x64
-          path: dist/KLAVA-windows-x64.zip
-          if-no-files-found: error
-          retention-days: 30
-      - name: Build current-user installer
+      - name: Build dual-scope Windows installer
         shell: pwsh
         run: |
           $compiler = Join-Path ${env:ProgramFiles(x86)} 'Inno Setup 6/ISCC.exe'
@@ -83,7 +49,7 @@ jobs:
       - name: Upload Windows installer
         uses: actions/upload-artifact@v4
         with:
-          name: KLAVA-user-installer-x64
+          name: KLAVA-installer-x64
           path: dist/KLAVA-Setup-x64.exe
           if-no-files-found: error
           retention-days: 30
