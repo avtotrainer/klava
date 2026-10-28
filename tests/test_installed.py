@@ -53,9 +53,8 @@ def test_different_windows_users_get_independent_exercises(installed, monkeypatc
 def test_portable_missing_file_is_not_silently_created(tmp_path, monkeypatch):
     monkeypatch.setattr(sys, "frozen", True, raising=False)
     monkeypatch.setattr(sys, "executable", str(tmp_path / "KLAVA.exe"))
-    path = prepare_exercise_file("data/sentences.txt")
-    assert path == tmp_path / "exercises.klv"
-    assert not path.exists()
+    with pytest.raises(FileNotFoundError):
+        prepare_exercise_file("data/sentences.txt")
 
 
 def test_editor_shortcut_opens_resolved_file_without_starting_session(monkeypatch, tmp_path):
