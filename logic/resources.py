@@ -16,37 +16,43 @@ def bundled_path(path: str) -> Path:
     return Path(__file__).resolve().parent.parent / path
 
 
+from logic.exercise_library import DEFAULT_NAME, library_dir, selected_exercise
+
+
 def exercise_path(source_path: str) -> Path:
-    """Separate installed per-user data, portable data and source-mode config."""
-    if getattr(sys, "frozen", False):
-        directory = Path(sys.executable).resolve().parent
-        # Only the installer ships this read-only seed, also marking installed mode.
-        if (directory / "default-exercises.txt").is_file():
-            local = Path(os.environ.get("LOCALAPPDATA", Path.home() / "AppData/Local"))
-            return local / "KLAVA" / "exercises.txt"
-        return directory / "exercises.txt"
-    return bundled_path(source_path)
+    """Return the user's selected KLV exercise, independent of install scope."""
+    return selected_exercise()
 
 
 def prepare_exercise_file(source_path: str) -> Path:
-    """Seed installed per-user exercises once; never overwrite an existing file.
+    """Seed the user's library exactly once without overwriting any files.
 
-    Portable/source files are never generated. Empty or invalid user files remain
-    untouched so Trainer can report them. Installation does not access user profiles.
+    Existing legacy exercises.txt is copied to the default KLV on migration.
+    Installed EXEs use the distributed default-exercises.klv; portable EXEs
+    use exercises.klv next to the executable; source runs use configured data.
     """
-    path = exercise_path(source_path)
-    if getattr(sys, "frozen", False):
-        seed = Path(sys.executable).resolve().parent / "default-exercises.txt"
-        if seed.is_file() and not path.exists():
-            content = seed.read_bytes()
-            path.parent.mkdir(parents=True, exist_ok=True)
-            try:
-                # Exclusive creation also protects against two concurrent launches.
-                with path.open("xb") as target:
-                    target.write(content)
-            except FileExistsError:
-                pass
-    return path
+    directory = library_dir()
+    directory.mkdir(parents=True, exist_ok=True)
+    default = directory / DEFAULT_NAME
+    if not default.exists():
+        if getattr(sys, "frozen", False):
+            app_dir = Path(sys.executable).resolve().parent
+            seed = app_dir / "default-exercises.klv"
+            if not seed.is_file():
+                seed = app_dir / DEFAULT_NAME
+        else:
+            seed = bundled_path(source_path)
+        legacy = directory / "exercises.txt"
+        if legacy.is_file():
+            seed = legacy
+        if not seed.is_file():
+            raise FileNotFoundError(seed)
+        try:
+            with default.open("xb") as dest:
+                dest.write(seed.read_bytes())
+        except FileExistsError:
+            pass
+    return selected_exercise()
 
 
 class Resources:
