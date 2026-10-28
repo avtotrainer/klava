@@ -114,7 +114,7 @@ def test_session_completion_and_reload(portable):
 def test_seed_is_supported_and_packaging_is_exact(tmp_path):
     (tmp_path / "data").mkdir()
     seed = bundled_path("data/sentences.txt").read_bytes()
-    (tmp_path / "data/sentences.txt").write_bytes(seed)
+    (tmp_path / "data/sentences.klv").write_bytes(seed)
     (tmp_path / "dist").mkdir()
     (tmp_path / "dist/KLAVA.exe").write_bytes(b"test executable placeholder")
     archive = package(tmp_path)
