@@ -8,11 +8,22 @@
     <StandardDirectory Id="ProgramFiles64Folder">
       <Directory Id="INSTALLFOLDER" Name="KLAVA MSI" />
     </StandardDirectory>
+    <StandardDirectory Id="ProgramMenuFolder">
+      <Directory Id="KLAVAProgramMenu" Name="KLAVA" />
+    </StandardDirectory>
     <Feature Id="Main" Title="KLAVA" Level="1">
       <ComponentGroupRef Id="KLAVAFiles" />
+      <ComponentRef Id="KLAVAStartMenuShortcut" />
     </Feature>
   </Package>
   <Fragment>
+    <DirectoryRef Id="KLAVAProgramMenu">
+      <Component Id="KLAVAStartMenuShortcut" Guid="*">
+        <Shortcut Id="KLAVAStartShortcut" Name="KLAVA" Target="[INSTALLFOLDER]KLAVA.exe" WorkingDirectory="INSTALLFOLDER" Advertise="no" />
+        <RemoveFolder Id="RemoveKLAVAProgramMenu" On="uninstall" />
+        <RegistryValue Root="HKLM" Key="Software\\KLAVA\\MSI" Name="StartMenuShortcut" Type="integer" Value="1" KeyPath="yes" />
+      </Component>
+    </DirectoryRef>
     <ComponentGroup Id="KLAVAFiles" Directory="INSTALLFOLDER">
       <Component Id="KLAVAExecutable" Guid="*">
         <File Id="KLAVAExe" Source="$(var.SourceDir)\KLAVA.exe" KeyPath="yes" />
