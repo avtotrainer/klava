@@ -16,7 +16,7 @@ class AppMenu:
         self.menu = tk.Menu(root)
         self._build(on_start, on_exit, on_about, on_select_exercise)
 
-    def _build(self, on_start, on_exit, on_about):
+    def _build(self, on_start, on_exit, on_about, on_select_exercise):
         file_menu = tk.Menu(self.menu, tearoff=0)
         file_menu.add_command(label=self.texts.text("app", "start"), command=on_start)
         file_menu.add_command(label=self.texts.text("app", "select_exercise", "Select exercise"), command=on_select_exercise)
