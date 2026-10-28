@@ -1,6 +1,4 @@
 """Load the approved welcome artwork. Never redraw or replace it programmatically."""
-from pathlib import Path
-
 from PIL import Image, ImageTk
 
 
