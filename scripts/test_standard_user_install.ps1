@@ -21,7 +21,16 @@ Start-Transcript -Path (Join-Path $PSScriptRoot 'standard-user.log')
 'wrapper-start' | Set-Content (Join-Path $PSScriptRoot 'progress.txt')
 try {
     Set-Location $PSScriptRoot
-    $env:LOCALAPPDATA = [Environment]::GetFolderPath('LocalApplicationData', 'Create')
+    $knownLocal = [Environment]::GetFolderPath('LocalApplicationData', 'Create')
+    if ([string]::IsNullOrWhiteSpace($knownLocal)) {
+        # A fresh CI account may lack a loaded user profile in a credentialed process.
+        # Keep its test data in an isolated ACL-protected directory rather than
+        # inheriting the administrator's LOCALAPPDATA value.
+        $knownLocal = Join-Path $PSScriptRoot 'isolated-localappdata'
+    }
+    $env:LOCALAPPDATA = $knownLocal
+    New-Item -ItemType Directory -Path $env:LOCALAPPDATA -Force | Out-Null
+    'localappdata-ready' | Set-Content (Join-Path $PSScriptRoot 'progress.txt')
     $env:TEMP = Join-Path $env:LOCALAPPDATA 'Temp'
     $env:TMP = $env:TEMP
     New-Item -ItemType Directory -Path $env:TEMP -Force | Out-Null
