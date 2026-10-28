@@ -44,13 +44,14 @@ try {
     $action = New-ScheduledTaskAction -Execute $powershell -WorkingDirectory $testRoot `
         -Argument "-NoProfile -ExecutionPolicy Bypass -File `"$wrapper`""
     $settings = New-ScheduledTaskSettingsSet -ExecutionTimeLimit (New-TimeSpan -Minutes 3)
-    Register-ScheduledTask -TaskName $name -Action $action -Settings $settings `
+    $trigger = New-ScheduledTaskTrigger -Once -At (Get-Date).AddMinutes(2)
+    Register-ScheduledTask -TaskName $name -Action $action -Trigger $trigger -Settings $settings `
         -User "$env:COMPUTERNAME\$name" -Password ([Net.NetworkCredential]::new('', $password).Password) `
         -RunLevel Limited | Out-Null
     $started = Get-Date
     Start-ScheduledTask -TaskName $name
     $finished = $false
-    for ($i = 0; $i -lt 180; $i++) {
+    for ($i = 0; $i -lt 45; $i++) {
         Start-Sleep -Seconds 1
         $info = Get-ScheduledTaskInfo -TaskName $name
         $state = (Get-ScheduledTask -TaskName $name).State
@@ -64,7 +65,18 @@ try {
     if (Test-Path (Join-Path $testRoot 'standard-user.log')) {
         Get-Content (Join-Path $testRoot 'standard-user.log')
     }
-    if (-not $finished) { throw 'Standard-user task did not finish: see task state, progress marker and transcript above' }
+    if (-not $finished) {
+        $task = Get-ScheduledTask -TaskName $name
+        $events = Get-WinEvent -FilterHashtable @{
+            LogName = 'Microsoft-Windows-TaskScheduler/Operational'
+            StartTime = $started.AddMinutes(-1)
+        } -ErrorAction SilentlyContinue | Where-Object {
+            $_.Message -like "*$name*"
+        } | Select-Object -First 10 TimeCreated, Id, Message
+        if ($events) { $events | Format-List | Out-String | Write-Output }
+        Write-Output "Task principal: $($task.Principal.UserId), logon: $($task.Principal.LogonType), run level: $($task.Principal.RunLevel)"
+        throw "Standard-user task did not launch; scheduler status $($info.LastTaskResult). Isolated account execution not verified."
+    }
     if ($info.LastTaskResult -ne 0) { throw "Standard-user test exit: $($info.LastTaskResult)" }
 } finally {
     if (Get-ScheduledTask -TaskName $name -ErrorAction SilentlyContinue) {
