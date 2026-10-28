@@ -106,7 +106,7 @@ class Trainer:
         self.menu.show()
 
         # ── INITIAL STATE ──────────────────────────
-        self.ui.show_cover(self.res.text("cover", "welcome"))
+        self.ui.show_start_cover()
         self.ui.hide_keyboard()
 
         # ── KEY BINDINGS ───────────────────────────
