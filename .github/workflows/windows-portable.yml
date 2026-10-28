@@ -56,7 +56,7 @@ jobs:
             taskkill /PID $process.Id /T /F
           }
           $names = @(Get-ChildItem (Join-Path $target 'KLAVA') -Force | Select-Object -ExpandProperty Name | Sort-Object)
-          if (($names -join ',') -cne 'exercises.txt,KLAVA.exe') { throw "Unexpected output files: $names" }
+          if (($names -join ',') -cne 'exercises.klv,KLAVA.exe') { throw "Unexpected output files: $names" }
       - name: Upload portable ZIP
         uses: actions/upload-artifact@v4
         with:
@@ -81,6 +81,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: KLAVA-user-installer-x64
-          path: dist/KLAVA-User-Setup-x64.exe
+          path: dist/KLAVA-Setup-x64.exe
           if-no-files-found: error
           retention-days: 30
