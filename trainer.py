@@ -8,7 +8,7 @@ from tkinter import messagebox
 from typing import Optional
 
 from logic.config import Config
-from logic.resources import Resources, exercise_path, prepare_exercise_file
+from logic.resources import Resources, bundled_path, exercise_path, prepare_exercise_file
 
 from ui.canvas import Canvas
 from ui.keyboard import Keyboard
@@ -51,6 +51,13 @@ class Trainer:
 
         # ── WINDOW TITLE (from resources) ───────────
         self.root.title(self.res.text("app", "title", fallback="KLAVA"))
+
+        # Keep image referenced while Tk is running; source-mode has a fallback.
+        self._brand_icon = None
+        icon_path = bundled_path("resources/branding/generated/app-icon-128.png")
+        if icon_path.is_file():
+            self._brand_icon = tk.PhotoImage(file=str(icon_path))
+            self.root.iconphoto(True, self._brand_icon)
 
         # ── STATE ──────────────────────────────────
         self.training_active: bool = False
@@ -258,7 +265,23 @@ class Trainer:
     # ABOUT
     # ==================================================
     def _about(self) -> None:
-        messagebox.showinfo(
-            self.res.text("app", "about", fallback="About"),
-            self.res.text("dialogs", "about_text", fallback="KLAVA"),
+        """Display product identity within a small, accessible Tk dialog."""
+        dialog = tk.Toplevel(self.root)
+        dialog.title(self.res.text("app", "about", fallback="About"))
+        dialog.transient(self.root)
+        dialog.resizable(False, False)
+        if self._brand_icon is not None:
+            dialog.iconphoto(False, self._brand_icon)
+            tk.Label(dialog, image=self._brand_icon).pack(pady=(20, 6))
+        tk.Label(
+            dialog,
+            text=self.res.text("dialogs", "about_text", fallback="KLAVA"),
+            font=("Arial", 13),
+            justify="center",
+            wraplength=380,
+        ).pack(padx=28, pady=(12, 16))
+        tk.Button(dialog, text="OK", command=dialog.destroy, width=12).pack(
+            pady=(0, 18)
         )
+        dialog.bind("<Escape>", lambda _event: dialog.destroy())
+        dialog.grab_set()
