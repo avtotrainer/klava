@@ -13,7 +13,8 @@
 - Focused behavioral regression tests and GitHub Actions validation in the project foundation branch.
 - Project knowledge, resource registry, and draft operational ChatGPT instructions.
 
-### Changed
+### Fixed
+- Interpret escaped `\\n` in localized messages, scale full-screen cover text with the actual window, and display the KLAVA icon in the title bar/About dialog.\n\n### Changed
 - Frozen builds read editable `exercises.txt` beside the executable; source runs preserve configured exercises.
 - Resource paths no longer depend on the current working directory; invalid exercise encoding gets a localized UTF-8 error.
 - Documentation aligned with implemented code and documented learning requirements.
