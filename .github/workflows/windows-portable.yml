@@ -74,9 +74,6 @@ jobs:
       - name: Verify installation, upgrade and uninstall
         shell: pwsh
         run: ./scripts/test_windows_installer.ps1
-      - name: Verify install and uninstall as a real standard user
-        shell: pwsh
-        run: ./scripts/test_standard_user_install.ps1
       - name: Verify all-users installation and uninstall
         shell: pwsh
         run: ./scripts/test_all_users_install.ps1
@@ -87,3 +84,6 @@ jobs:
           path: dist/KLAVA-Setup-x64.exe
           if-no-files-found: error
           retention-days: 30
+      - name: Verify install and uninstall as a real standard user
+        shell: pwsh
+        run: ./scripts/test_standard_user_install.ps1
