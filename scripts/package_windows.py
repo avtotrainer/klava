@@ -9,7 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def package(root: Path = ROOT) -> Path:
     """Validate the seed, copy only user-facing files, and verify ZIP contents."""
-    seed = root / "data/sentences.txt"
+    seed = root / "data/sentences.klv"
     lines = [line.strip().upper() for line in seed.read_text(encoding="utf-8").splitlines()
              if line.strip()]
     if len(lines) < 2 or any(set(line) - set("ABCDEFGHIJKLMNOPQRSTUVWXYZ ") for line in lines):
