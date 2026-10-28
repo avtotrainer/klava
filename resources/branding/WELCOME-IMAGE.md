@@ -1,7 +1,7 @@
-# KLAVA welcome screen image
+# KLAVA welcome image
 
-**Approved visual reference:** generated in KLAVA conversation, 2026-10-29. The exact binary is supplied in the conversation as a downloadable PNG, but it has **not been committed** to this branch.
+The owner uploaded the approved artwork to `resources/branding/welcome.png` on the review branch. The uploaded file is a 1024×1024 RGBA PNG (alpha/transparency).
 
-Required asset path: `resources/branding/welcome.png`. UI uses Pillow to crop the embedded mock window title strip and scale/letterbox to the current 800×600 window without stretching. `KLAVA.spec` already includes all `resources/` recursively, so both MSI and EXE will bundle the image once committed.
+The startup UI composites it over the light-blue backdrop, preserving transparent edges and aspect ratio in the 800×600 initial window. No generated keyboard illustration is used. The image is included automatically by `KLAVA.spec`, which bundles `resources/` for both EXE and MSI packaging.
 
-Do not replace this picture with the previous programmatic `ui.hand_placement` illustration. If the PNG is absent, the app displays a minimal `KLAVA` fallback instead of a fabricated image. Do not consider this task visually complete until the exact PNG is in GitHub and a new CI installer is built and checked.
+Manual visual acceptance of the newly packaged startup window remains to be confirmed on Windows. Do not treat the PNG itself as a working Start control; the real Start menu remains the application's navigation mechanism.
