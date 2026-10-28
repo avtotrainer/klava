@@ -1,9 +1,18 @@
 # Disposable GitHub Windows runner only: actual install, upgrade and uninstall.
+param([switch]$RequireStandardUser, [switch]$Headless)
 $ErrorActionPreference = 'Stop'
-$setup = (Resolve-Path 'dist/KLAVA-Setup-x64.exe').Path
-$app = Join-Path $env:ProgramFiles 'KLAVA'
+if ($RequireStandardUser) {
+    $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
+    $principal = [Security.Principal.WindowsPrincipal]::new($identity)
+    if ($principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+        throw 'Test must run without administrator rights'
+    }
+    Write-Output 'Confirmed: test process is a standard user without administrator rights.'
+}
+$setup = (Resolve-Path 'dist/KLAVA-User-Setup-x64.exe').Path
+$app = Join-Path $env:LOCALAPPDATA 'Programs/KLAVA'
 $data = Join-Path $env:LOCALAPPDATA 'KLAVA/exercises.txt'
-$menu = Join-Path ([Environment]::GetFolderPath('CommonPrograms')) 'KLAVA'
+$menu = Join-Path ([Environment]::GetFolderPath('Programs')) 'KLAVA'
 if (Test-Path $app) { throw 'Refusing to test over an existing installation' }
 if (Test-Path (Split-Path $data)) { throw 'Refusing to test over existing user data' }
 
@@ -14,13 +23,16 @@ function Invoke-Setup {
 
 function Test-Launch {
     $exe = Join-Path $app 'KLAVA.exe'
-    $process = Start-Process -FilePath $exe -WorkingDirectory $env:RUNNER_TEMP -PassThru
+    $process = Start-Process -FilePath $exe -WorkingDirectory $env:TEMP -PassThru
     try {
         $found = $false
         for ($i = 0; $i -lt 60; $i++) {
             Start-Sleep -Seconds 1
-            $window = Get-Process | Where-Object { $_.Path -eq $exe -and $_.MainWindowTitle -like 'KLAVA*' }
-            if ($window) { $found = $true; break }
+            $window = $null
+            if (-not $Headless) {
+                $window = Get-Process | Where-Object { $_.Path -eq $exe -and $_.MainWindowTitle -like 'KLAVA*' }
+            }
+            if ($window -or ($Headless -and (Test-Path $data) -and -not $process.HasExited)) { $found = $true; break }
             if ($process.HasExited) { throw 'Installed EXE exited before opening its window' }
         }
         if (-not $found) { throw 'Installed KLAVA window did not appear' }
@@ -30,9 +42,14 @@ function Test-Launch {
 }
 
 Invoke-Setup
-if (-not (Test-Path (Join-Path $app 'KLAVA.exe'))) { throw 'EXE not installed in Program Files' }
+if (-not (Test-Path (Join-Path $app 'KLAVA.exe'))) { throw 'EXE not installed in the user profile' }
 if (-not (Test-Path (Join-Path $app 'default-exercises.txt'))) { throw 'Missing installed seed' }
-if (Test-Path $data) { throw 'Elevated installer must not create user data' }
+if (Test-Path $data) { throw 'Installer must not create exercise data' }
+$uninstallKey = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\KLAVA.CurrentUser_is1'
+if (-not (Test-Path $uninstallKey)) { throw 'Missing per-user uninstall registration' }
+if (Test-Path 'HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\KLAVA.CurrentUser_is1') {
+    throw 'Unexpected machine-wide uninstall registration'
+}
 $shell = New-Object -ComObject WScript.Shell
 foreach ($name in @('KLAVA', 'Edit exercises')) {
     $link = Join-Path $menu "$name.lnk"
@@ -54,6 +71,7 @@ $process = Start-Process -FilePath $uninstaller -ArgumentList '/VERYSILENT /SUPP
 if ($process.ExitCode -ne 0) { throw "Uninstaller exit: $($process.ExitCode)" }
 for ($i = 0; $i -lt 20 -and (Test-Path (Join-Path $app 'KLAVA.exe')); $i++) { Start-Sleep -Seconds 1 }
 if (Test-Path (Join-Path $app 'KLAVA.exe')) { throw 'Uninstall left the application executable' }
+if (Test-Path $uninstallKey) { throw 'Uninstall left HKCU registration' }
 if (Test-Path (Join-Path $menu 'KLAVA.lnk')) { throw 'Uninstall left the Start shortcut' }
 if ((Get-FileHash $data).Hash -ne $editedHash) { throw 'Uninstall removed or changed user exercises' }
-Write-Output 'PASS: Program Files install; both shortcuts; first-run seed; installed EXE launch; reinstall preserves edits; uninstall preserves user exercises.'
+Write-Output 'PASS: per-user profile install; both shortcuts; first-run seed; installed EXE launch; reinstall preserves edits; uninstall preserves user exercises.'

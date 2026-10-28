@@ -1,19 +1,19 @@
 ; Compile after PyInstaller: ISCC.exe packaging\windows-installer.iss
-; User data is created by KLAVA under the actual user's profile, never by elevated Setup.
+; User data is created by KLAVA under the actual user's profile, never by Setup.
 [Setup]
-AppId={{08D47CA7-2AA4-490E-A646-A73C7CD23356}
+AppId=KLAVA.CurrentUser
 AppName=KLAVA
 AppVersion=0.3.1-alpha
 AppPublisher=KLAVA
-DefaultDirName={autopf}\KLAVA
+DefaultDirName={localappdata}\Programs\KLAVA
 DefaultGroupName=KLAVA
 DisableProgramGroupPage=yes
-PrivilegesRequired=admin
+PrivilegesRequired=lowest
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 MinVersion=10.0
 OutputDir=..\dist
-OutputBaseFilename=KLAVA-Setup-x64
+OutputBaseFilename=KLAVA-User-Setup-x64
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
