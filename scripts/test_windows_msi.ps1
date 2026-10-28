@@ -17,5 +17,5 @@ try {
 } finally {
     Invoke-Msi @('/x', "`"$msi`"", '/qn', '/norestart', '/L*v', "`"$removeLog`"")
 }
-if (Test-Path $exe -or Test-Path $klv) { throw 'MSI uninstall left application payload behind' }
+if ((Test-Path $exe) -or (Test-Path $klv)) { throw 'MSI uninstall left application payload behind' }
 Write-Output 'Verified MSI uninstall.'
