@@ -10,15 +10,16 @@ class AppMenu:
     ტექსტებს იღებს Resources-იდან.
     """
 
-    def __init__(self, root: tk.Tk, texts, on_start, on_exit, on_about):
+    def __init__(self, root: tk.Tk, texts, on_start, on_exit, on_about, on_select_exercise):
         self.root = root
         self.texts = texts
         self.menu = tk.Menu(root)
-        self._build(on_start, on_exit, on_about)
+        self._build(on_start, on_exit, on_about, on_select_exercise)
 
     def _build(self, on_start, on_exit, on_about):
         file_menu = tk.Menu(self.menu, tearoff=0)
         file_menu.add_command(label=self.texts.text("app", "start"), command=on_start)
+        file_menu.add_command(label=self.texts.text("app", "select_exercise", "Select exercise"), command=on_select_exercise)
         file_menu.add_separator()
         file_menu.add_command(label=self.texts.text("app", "exit"), command=on_exit)
 
