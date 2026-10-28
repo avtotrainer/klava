@@ -11,7 +11,6 @@ try {
     $user = New-LocalUser -Name $name -Password $password -AccountNeverExpires
     $usersGroup = Get-LocalGroup -SID 'S-1-5-32-545'
     Add-LocalGroupMember -Group $usersGroup -Member $user
-    $credential = [PSCredential]::new("$env:COMPUTERNAME\$name", $password)
     # Public test payload is readable; give this disposable account its own log directory.
     & icacls $testRoot /grant "${name}:(OI)(CI)M" | Out-Null
     if ($LASTEXITCODE -ne 0) { throw 'Could not grant test-directory access' }
@@ -36,16 +35,36 @@ try {
 }
 '@ | Set-Content $wrapper
     $powershell = Join-Path $env:SystemRoot 'System32/WindowsPowerShell/v1.0/powershell.exe'
-    $process = Start-Process -FilePath $powershell -Credential $credential -LoadUserProfile `
-        -WorkingDirectory $testRoot -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$wrapper`"" -PassThru
-    if (-not $process.WaitForExit(180000)) {
-        Stop-Process -Id $process.Id -Force
-        throw 'Standard-user installer test exceeded 180 seconds'
+    # Task Scheduler creates the logged-on user's environment instead of inheriting
+    # runneradmin's USERPROFILE variables through Start-Process -Credential.
+    $action = New-ScheduledTaskAction -Execute $powershell -WorkingDirectory $testRoot `
+        -Argument "-NoProfile -ExecutionPolicy Bypass -File `"$wrapper`""
+    $settings = New-ScheduledTaskSettingsSet -ExecutionTimeLimit (New-TimeSpan -Minutes 3)
+    Register-ScheduledTask -TaskName $name -Action $action -Settings $settings `
+        -User "$env:COMPUTERNAME\$name" -Password ([Net.NetworkCredential]::new('', $password).Password) `
+        -RunLevel Limited | Out-Null
+    $started = Get-Date
+    Start-ScheduledTask -TaskName $name
+    $finished = $false
+    for ($i = 0; $i -lt 180; $i++) {
+        Start-Sleep -Seconds 1
+        $info = Get-ScheduledTaskInfo -TaskName $name
+        $state = (Get-ScheduledTask -TaskName $name).State
+        if ($info.LastRunTime -ge $started.AddSeconds(-2) -and $state -ne 'Running') {
+            $finished = $true
+            break
+        }
     }
-    $process.Refresh()
-    Get-Content (Join-Path $testRoot 'standard-user.log')
-    if ($process.ExitCode -ne 0) { throw "Standard-user test exit: $($process.ExitCode)" }
+    if (Test-Path (Join-Path $testRoot 'standard-user.log')) {
+        Get-Content (Join-Path $testRoot 'standard-user.log')
+    }
+    if (-not $finished) { throw 'Standard-user installer test exceeded 180 seconds' }
+    if ($info.LastTaskResult -ne 0) { throw "Standard-user test exit: $($info.LastTaskResult)" }
 } finally {
+    if (Get-ScheduledTask -TaskName $name -ErrorAction SilentlyContinue) {
+        Stop-ScheduledTask -TaskName $name -ErrorAction SilentlyContinue
+        Unregister-ScheduledTask -TaskName $name -Confirm:$false
+    }
     if (Get-LocalUser -Name $name -ErrorAction SilentlyContinue) { Remove-LocalUser -Name $name }
     # The ephemeral runner is destroyed after this job; do not delete user profiles here.
 }
