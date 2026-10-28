@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <Package Name="KLAVA" Manufacturer="KLAVA" Version="0.3.1" UpgradeCode="BE1E5D5B-9D2E-4CE7-9DAD-CA7A46C6F91A" Scope="perMachine">
+    <MajorUpgrade DowngradeErrorMessage="A newer KLAVA MSI is already installed." />
+    <MediaTemplate EmbedCab="yes" />
+    <!-- Do not overlay Inno Setup installations: the two installers have
+         independent servicing/uninstallation databases. -->
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="INSTALLFOLDER" Name="KLAVA MSI" />
+    </StandardDirectory>
+    <Feature Id="Main" Title="KLAVA" Level="1">
+      <ComponentGroupRef Id="KLAVAFiles" />
+    </Feature>
+  </Package>
+  <Fragment>
+    <ComponentGroup Id="KLAVAFiles" Directory="INSTALLFOLDER">
+      <Component Id="KLAVAExecutable" Guid="*">
+        <File Id="KLAVAExe" Source="$(var.SourceDir)\KLAVA.exe" KeyPath="yes" />
+      </Component>
+      <Component Id="DefaultExercises" Guid="*">
+        <File Id="ExercisesFile" Source="$(var.SourceDir)\default-exercises.klv" KeyPath="yes" />
+      </Component>
+    </ComponentGroup>
+  </Fragment>
+</Wix>
