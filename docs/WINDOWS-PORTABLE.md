@@ -227,3 +227,20 @@ CI-ის პირველი non-admin მცდელობა ([run 4062964
 სესიასა და გარემოს, runner-ის გარემოს მემკვიდრეობით გადაცემის ნაცვლად.
 ამ სატესტო დავალებას ტრიგერი/განრიგი არ აქვს და ბოლოს იშლება ანგარიშთან ერთად;
 მომხმარებლის კომპიუტერზე ავტომატიზაცია არ იქმნება.
+
+## KLV exercise library and dual-scope setup — 2026-10-28
+
+**Working branch:** `feat/klv-selection-dual-installer`. This section describes the proposed, not yet merged, implementation.
+
+- Each Windows user maintains their own library under `%LOCALAPPDATA%\\KLAVA`.
+- Plain UTF-8 text exercises now use the `.klv` extension. Contents remain one typing line per line, minimum two nonblank lines.
+- KLAVA creates `exercises.klv` on first run from the distributed seed; previously saved `exercises.txt` in that user's library is copied, never deleted.
+- The File menu includes `სავარჯიშოს არჩევა`, listing only `.klv` files from the current user's library; selection is remembered in `selected-exercise.txt`.
+- Installer offers **Current User** (no admin needed, `%LOCALAPPDATA%\\Programs\\KLAVA`) and **All Users** (administrative elevation, `%ProgramFiles%\\KLAVA`).
+- Both choices install exactly the same executable and default seed, without modifying user data during setup or uninstall.
+- Portable archive remains exactly two files: `KLAVA.exe` and `exercises.klv`. The first run copies the bundled `.klv` seed into the user's library.
+- For noninteractive installations, `/CURRENTUSER` and `/ALLUSERS` explicitly set the scope.
+- Machine-wide installation cannot bypass Windows administrative permissions or domain restrictions.
+- CI verifies standard-user installation, per-user installation lifecycle, machine-wide installation/uninstall and portable ZIP shape. Results must be read from the run logs; configuration alone is not proof of success.
+
+**Rollback:** uninstall executable via Windows Apps without removing `%LOCALAPPDATA%\\KLAVA`. Existing `exercises.txt` remains as a migration source. Keep backups when editing user content. The previous `.txt` portable file is not read by the new portable format except for a prior user-library migration.
