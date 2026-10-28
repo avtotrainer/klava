@@ -4,6 +4,8 @@
 from __future__ import annotations
 
 import tkinter as tk
+
+from ui.hand_placement import welcome_image
 from configparser import ConfigParser
 
 
@@ -67,6 +69,9 @@ class Canvas:
             fill=self.cover_text_color,
             tags=("cover",),
         )
+        self.cover_image = self.canvas.create_image(0, 0, anchor="nw", tags=("cover",), state="hidden")
+        self._welcome_image = None
+        self._welcome_visible = False
         self.canvas.tag_raise("cover")
         self.canvas.bind("<Configure>", self._resize_cover)
 
@@ -76,6 +81,9 @@ class Canvas:
         self.width, self.height = width, height
         self.canvas.coords(self.cover_rect, 0, 0, width, height)
         self.canvas.coords(self.cover_text, width / 2, height / 2)
+        if self._welcome_visible:
+            self._welcome_image = welcome_image(width, height)
+            self.canvas.itemconfigure(self.cover_image, image=self._welcome_image)
         size = max(16, min(self.font_cover, int(min(width / 13, height / 8))))
         self.canvas.itemconfigure(
             self.cover_text,
@@ -92,7 +100,21 @@ class Canvas:
         self.canvas.itemconfigure("keyboard", state="normal")
 
     # ------------------------------
+    def show_start_cover(self) -> None:
+        """Display instructional hand positions on the initial cover."""
+        self._welcome_visible = True
+        width = max(1, self.canvas.winfo_width())
+        height = max(1, self.canvas.winfo_height())
+        self._welcome_image = welcome_image(width, height)
+        self.canvas.itemconfigure(self.cover_image, image=self._welcome_image, state="normal")
+        self.canvas.itemconfigure(self.cover_text, text="", state="hidden")
+        self.canvas.itemconfigure("cover", state="normal")
+        self.canvas.tag_raise("cover")
+
     def show_cover(self, text: str) -> None:
+        self._welcome_visible = False
+        self.canvas.itemconfigure(self.cover_image, state="hidden")
+        self.canvas.itemconfigure(self.cover_text, state="normal")
         self.canvas.itemconfig(self.cover_text, text=text)
         self.canvas.itemconfigure("cover", state="normal")
         self.canvas.tag_raise("cover")
