@@ -9,15 +9,15 @@ if ($RequireStandardUser) {
     }
     Write-Output 'Confirmed: test process is a standard user without administrator rights.'
 }
-$setup = (Resolve-Path 'dist/KLAVA-User-Setup-x64.exe').Path
+$setup = (Resolve-Path 'dist/KLAVA-Setup-x64.exe').Path
 $app = Join-Path $env:LOCALAPPDATA 'Programs/KLAVA'
-$data = Join-Path $env:LOCALAPPDATA 'KLAVA/exercises.txt'
+$data = Join-Path $env:LOCALAPPDATA 'KLAVA/exercises.klv'
 $menu = Join-Path ([Environment]::GetFolderPath('Programs')) 'KLAVA'
 if (Test-Path $app) { throw 'Refusing to test over an existing installation' }
 if (Test-Path (Split-Path $data)) { throw 'Refusing to test over existing user data' }
 
 function Invoke-Setup {
-    $process = Start-Process -FilePath $setup -ArgumentList '/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP-' -Wait -PassThru
+    $process = Start-Process -FilePath $setup -ArgumentList '/CURRENTUSER /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP-' -Wait -PassThru
     if ($process.ExitCode -ne 0) { throw "Installer exit: $($process.ExitCode)" }
 }
 
@@ -43,7 +43,7 @@ function Test-Launch {
 
 Invoke-Setup
 if (-not (Test-Path (Join-Path $app 'KLAVA.exe'))) { throw 'EXE not installed in the user profile' }
-if (-not (Test-Path (Join-Path $app 'default-exercises.txt'))) { throw 'Missing installed seed' }
+if (-not (Test-Path (Join-Path $app 'default-exercises.klv'))) { throw 'Missing installed seed' }
 if (Test-Path $data) { throw 'Installer must not create exercise data' }
 $uninstallKey = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\KLAVA.CurrentUser_is1'
 if (-not (Test-Path $uninstallKey)) { throw 'Missing per-user uninstall registration' }
@@ -60,7 +60,7 @@ foreach ($name in @('KLAVA', 'Edit exercises')) {
 }
 Test-Launch
 if (-not (Test-Path $data)) { throw 'First launch did not create user exercises' }
-if ((Get-FileHash $data).Hash -ne (Get-FileHash (Join-Path $app 'default-exercises.txt')).Hash) { throw 'Seed mismatch' }
+if ((Get-FileHash $data).Hash -ne (Get-FileHash (Join-Path $app 'default-exercises.klv')).Hash) { throw 'Seed mismatch' }
 [IO.File]::WriteAllText($data, "A B`nB A`n", [Text.UTF8Encoding]::new($false))
 $editedHash = (Get-FileHash $data).Hash
 Invoke-Setup
