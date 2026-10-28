@@ -26,6 +26,9 @@ def test_real_widgets_session_and_reload(tmp_path, monkeypatch):
     try:
         trainer = Trainer(root)
         root.update()
+        assert root.winfo_width() == 800 and root.winfo_height() == 600
+        assert trainer.ui._welcome_visible
+        assert trainer.ui.canvas.itemcget(trainer.ui.cover_image, 'state') == 'normal'
         assert set(trainer.keyboard.key_boxes) == set("ABCDEFGHIJKLMNOPQRSTUVWXYZ ")
         trainer.start_training()
         root.update()
