@@ -8,14 +8,14 @@ from pathlib import Path
 import json
 import sys
 
+from logic.exercise_library import DEFAULT_NAME, library_dir, selected_exercise
+
 
 def bundled_path(path: str) -> Path:
     """Resolve read-only assets in the source tree or PyInstaller extraction root."""
     # PyInstaller sets module __file__ inside its temporary onefile bundle.
     return Path(__file__).resolve().parent.parent / path
 
-
-from logic.exercise_library import DEFAULT_NAME, library_dir, selected_exercise
 
 
 def exercise_path(source_path: str) -> Path:
