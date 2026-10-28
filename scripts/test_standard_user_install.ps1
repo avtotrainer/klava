@@ -38,51 +38,31 @@ try {
     exit 1
 }
 '@ | Set-Content $wrapper
+    # Avoid Task Scheduler: hosted runners may deny batch-logon to fresh users.
+    # Start-Process with explicit credentials must run with the user's own token.
     $powershell = Join-Path $env:SystemRoot 'System32/WindowsPowerShell/v1.0/powershell.exe'
-    # Task Scheduler creates the logged-on user's environment instead of inheriting
-    # runneradmin's USERPROFILE variables through Start-Process -Credential.
-    $action = New-ScheduledTaskAction -Execute $powershell -WorkingDirectory $testRoot `
-        -Argument "-NoProfile -ExecutionPolicy Bypass -File `"$wrapper`""
-    $settings = New-ScheduledTaskSettingsSet -ExecutionTimeLimit (New-TimeSpan -Minutes 3)
-    $trigger = New-ScheduledTaskTrigger -Once -At (Get-Date).AddMinutes(2)
-    Register-ScheduledTask -TaskName $name -Action $action -Trigger $trigger -Settings $settings `
-        -User "$env:COMPUTERNAME\$name" -Password ([Net.NetworkCredential]::new('', $password).Password) `
-        -RunLevel Limited | Out-Null
-    $started = Get-Date
-    Start-ScheduledTask -TaskName $name
-    $finished = $false
-    for ($i = 0; $i -lt 45; $i++) {
-        Start-Sleep -Seconds 1
-        $info = Get-ScheduledTaskInfo -TaskName $name
-        $state = (Get-ScheduledTask -TaskName $name).State
-        if ($info.LastRunTime -ge $started.AddSeconds(-2) -and $state -ne 'Running') {
-            $finished = $true
-            break
-        }
+    Write-Output 'Launching installer verification under temporary standard-user credentials.'
+    $proc = Start-Process -FilePath $powershell -Credential ([PSCredential]::new(
+        "$env:COMPUTERNAME\$name", $password
+    )) -WorkingDirectory $testRoot -ArgumentList @(
+        '-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass',
+        '-File', "`"$wrapper`""
+    ) -PassThru -WindowStyle Hidden
+    if (-not $proc.WaitForExit(120000)) {
+        if (-not $proc.HasExited) { $proc.Kill() }
+        throw 'Direct standard-user process did not complete within 120 seconds'
     }
-    Write-Output "Task state: $((Get-ScheduledTask -TaskName $name).State); result: $($info.LastTaskResult); started: $($info.LastRunTime)"
-    if (Test-Path (Join-Path $testRoot 'progress.txt')) { Get-Content (Join-Path $testRoot 'progress.txt') }
+    Write-Output "Standard-user verification exited with $($proc.ExitCode)"
+    if (Test-Path (Join-Path $testRoot 'progress.txt')) {
+        Get-Content (Join-Path $testRoot 'progress.txt')
+    }
     if (Test-Path (Join-Path $testRoot 'standard-user.log')) {
         Get-Content (Join-Path $testRoot 'standard-user.log')
     }
-    if (-not $finished) {
-        $task = Get-ScheduledTask -TaskName $name
-        $events = Get-WinEvent -FilterHashtable @{
-            LogName = 'Microsoft-Windows-TaskScheduler/Operational'
-            StartTime = $started.AddMinutes(-1)
-        } -ErrorAction SilentlyContinue | Where-Object {
-            $_.Message -like "*$name*"
-        } | Select-Object -First 10 TimeCreated, Id, Message
-        if ($events) { $events | Format-List | Out-String | Write-Output }
-        Write-Output "Task principal: $($task.Principal.UserId), logon: $($task.Principal.LogonType), run level: $($task.Principal.RunLevel)"
-        throw "Standard-user task did not launch; scheduler status $($info.LastTaskResult). Isolated account execution not verified."
+    if ($proc.ExitCode -ne 0) {
+        throw "Direct standard-user verification failed: exit $($proc.ExitCode)"
     }
-    if ($info.LastTaskResult -ne 0) { throw "Standard-user test exit: $($info.LastTaskResult)" }
 } finally {
-    if (Get-ScheduledTask -TaskName $name -ErrorAction SilentlyContinue) {
-        Stop-ScheduledTask -TaskName $name -ErrorAction SilentlyContinue
-        Unregister-ScheduledTask -TaskName $name -Confirm:$false
-    }
     if (Get-LocalUser -Name $name -ErrorAction SilentlyContinue) { Remove-LocalUser -Name $name }
     # The ephemeral runner is destroyed after this job; do not delete user profiles here.
 }
