@@ -9,11 +9,12 @@ DefaultDirName={localappdata}\Programs\KLAVA
 DefaultGroupName=KLAVA
 DisableProgramGroupPage=yes
 PrivilegesRequired=lowest
+PrivilegesRequiredOverridesAllowed=dialog
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 MinVersion=10.0
 OutputDir=..\dist
-OutputBaseFilename=KLAVA-User-Setup-x64
+OutputBaseFilename=KLAVA-Setup-x64
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
@@ -27,7 +28,7 @@ Name: "desktopicon"; Description: "Create a desktop shortcut"; GroupDescription:
 
 [Files]
 Source: "..\dist\KLAVA.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "..\data\sentences.txt"; DestDir: "{app}"; DestName: "default-exercises.txt"; Flags: ignoreversion
+Source: "..\data\sentences.txt"; DestDir: "{app}"; DestName: "default-exercises.klv"; Flags: ignoreversion
 
 [Icons]
 Name: "{group}\KLAVA"; Filename: "{app}\KLAVA.exe"
