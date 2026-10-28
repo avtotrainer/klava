@@ -92,7 +92,7 @@ class Resources:
 
     # ----------------------------
     def text(self, section: str, key: str, fallback: str = "") -> str:
-        return self.texts.get(section, key, fallback=fallback)
+        return self.texts.get(section, key, fallback=fallback).replace(r"\n", "\n")
 
     def theme_section(self, section: str) -> SectionProxy:
         return self.theme[section]
