@@ -17,10 +17,10 @@ def package(root: Path = ROOT) -> Path:
     payload = root / "dist/KLAVA"
     payload.mkdir(parents=True, exist_ok=True)
     shutil.copy2(root / "dist/KLAVA.exe", payload / "KLAVA.exe")
-    shutil.copy2(seed, payload / "exercises.txt")
-    expected = {"KLAVA.exe", "exercises.txt"}
+    shutil.copy2(seed, payload / "exercises.klv")
+    expected = {"KLAVA.exe", "exercises.klv"}
     if {p.name for p in payload.iterdir()} != expected:
-        raise ValueError("Portable directory must contain exactly KLAVA.exe and exercises.txt")
+        raise ValueError("Portable directory must contain exactly KLAVA.exe and exercises.klv")
     archive = root / "dist/KLAVA-windows-x64.zip"
     with ZipFile(archive, "w", compression=ZIP_DEFLATED) as zipped:
         for name in sorted(expected):
