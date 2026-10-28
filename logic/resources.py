@@ -6,7 +6,6 @@ from __future__ import annotations
 from configparser import ConfigParser, SectionProxy
 from pathlib import Path
 import json
-import os
 import sys
 
 
