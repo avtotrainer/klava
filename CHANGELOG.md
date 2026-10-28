@@ -1,6 +1,8 @@
 ## [Unreleased]
 
 ### Added
+- Program Files installer with Start-menu launch/editor shortcuts, optional desktop shortcut and uninstaller.
+- Per-user installed exercises, preserved across reinstall/uninstall, with installer lifecycle CI checks.
 - Windows x64 portable onefile build, exact two-file ZIP validation, and PR/manual Actions artifacts.
 - Portable path, UTF-8 input, session reload, packaging and opt-in real Tk regression tests.
 - Authorized daily 09:00 Asia/Tbilisi cross-resource audit through a scheduled ChatGPT task (first execution not yet verified).

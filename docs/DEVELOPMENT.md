@@ -49,6 +49,6 @@
 
 GUI არ იფარება სრულად `pytest`-ის საწყისი ტესტებით. CI მწვანე სტატუსი არ ნიშნავს, რომ ადაპტიური Quality Gate მოქმედია ან Kiosk ყველა ოპერაციულ სისტემაზე იდენტურია.
 
-## Windows Portable
+## Windows Portable და ინსტალატორი
 
 აწყობა, რესურსების გამიჯვნა, ტესტები და მიღების საზღვრები: [Windows Portable HANDOUT](WINDOWS-PORTABLE.md).

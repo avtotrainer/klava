@@ -6,6 +6,7 @@ from __future__ import annotations
 from configparser import ConfigParser, SectionProxy
 from pathlib import Path
 import json
+import os
 import sys
 
 
@@ -16,10 +17,36 @@ def bundled_path(path: str) -> Path:
 
 
 def exercise_path(source_path: str) -> Path:
-    """Locate editable exercises beside the EXE; preserve source-mode config."""
+    """Separate installed per-user data, portable data and source-mode config."""
     if getattr(sys, "frozen", False):
-        return Path(sys.executable).resolve().parent / "exercises.txt"
+        directory = Path(sys.executable).resolve().parent
+        # Only the installer ships this read-only seed, also marking installed mode.
+        if (directory / "default-exercises.txt").is_file():
+            local = Path(os.environ.get("LOCALAPPDATA", Path.home() / "AppData/Local"))
+            return local / "KLAVA" / "exercises.txt"
+        return directory / "exercises.txt"
     return bundled_path(source_path)
+
+
+def prepare_exercise_file(source_path: str) -> Path:
+    """Seed installed per-user exercises once; never overwrite an existing file.
+
+    Portable/source files are never generated. Empty or invalid user files remain
+    untouched so Trainer can report them. Installation does not access user profiles.
+    """
+    path = exercise_path(source_path)
+    if getattr(sys, "frozen", False):
+        seed = Path(sys.executable).resolve().parent / "default-exercises.txt"
+        if seed.is_file() and not path.exists():
+            content = seed.read_bytes()
+            path.parent.mkdir(parents=True, exist_ok=True)
+            try:
+                # Exclusive creation also protects against two concurrent launches.
+                with path.open("xb") as target:
+                    target.write(content)
+            except FileExistsError:
+                pass
+    return path
 
 
 class Resources:

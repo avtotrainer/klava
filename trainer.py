@@ -8,7 +8,7 @@ from tkinter import messagebox
 from typing import Optional
 
 from logic.config import Config
-from logic.resources import Resources, exercise_path
+from logic.resources import Resources, exercise_path, prepare_exercise_file
 
 from ui.canvas import Canvas
 from ui.keyboard import Keyboard
@@ -237,6 +237,9 @@ class Trainer:
         )
 
         try:
+            prepare_exercise_file(
+                self.cfg.get("training", "sentence_file", fallback="data/sentences.txt")
+            )
             with open(path, encoding="utf-8-sig") as f:
                 lines = [line.strip().upper() for line in f if line.strip()]
         except UnicodeError as e:
