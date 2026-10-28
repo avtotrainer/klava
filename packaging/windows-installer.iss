@@ -5,7 +5,7 @@ AppId=KLAVA.CurrentUser
 AppName=KLAVA
 AppVersion=0.3.1-alpha
 AppPublisher=KLAVA
-DefaultDirName={localappdata}\Programs\KLAVA
+DefaultDirName={code:KlavaInstallDir}
 DefaultGroupName=KLAVA
 DisableProgramGroupPage=yes
 PrivilegesRequired=lowest
@@ -30,7 +30,7 @@ Name: "desktopicon"; Description: "Create a desktop shortcut"; GroupDescription:
 
 [Files]
 Source: "..\dist\KLAVA.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "..\data\sentences.txt"; DestDir: "{app}"; DestName: "default-exercises.klv"; Flags: ignoreversion
+Source: "..\data\sentences.klv"; DestDir: "{app}"; DestName: "default-exercises.klv"; Flags: ignoreversion
 
 [Icons]
 Name: "{group}\KLAVA"; Filename: "{app}\KLAVA.exe"
