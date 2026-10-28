@@ -39,3 +39,12 @@ Name: "{autodesktop}\KLAVA"; Filename: "{app}\KLAVA.exe"; Tasks: desktopicon
 
 [Run]
 Filename: "{app}\KLAVA.exe"; Description: "Launch KLAVA"; Flags: nowait postinstall skipifsilent runasoriginaluser
+
+[Code]
+function KlavaInstallDir(Param: String): String;
+begin
+  if IsAdminInstallMode then
+    Result := ExpandConstant('{commonpf}\KLAVA')
+  else
+    Result := ExpandConstant('{localappdata}\Programs\KLAVA');
+end;
