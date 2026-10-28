@@ -252,3 +252,9 @@ The dedicated Windows standard-user task previously exceeded its 180-second wind
 ## Distribution decision — 2026-10-28
 
 The owner discontinued the standalone portable distribution. The supported deliverable is now **KLAVA-Setup-x64.exe** only, with Current User and All Users options. GitHub Actions still builds an internal PyInstaller executable as the installer's input, but no longer assembles or uploads the two-file portable ZIP. Older portable archives may remain in historical CI artifacts; they are not the current deliverable. The standard-user integration test remains a separate unresolved gate until verified.
+
+## Acceptance-gate decision — 2026-10-29
+
+The project owner confirmed that the installer completed and KLAVA works on a real Windows administrator account. The isolated temporary standard-user GitHub Actions process remained a CI harness problem: the scheduler could not launch the task, and a direct credentialed launch lacked a normal LOCALAPPDATA profile. Rather than treating a GitHub runner account provisioning defect as an application regression, the fragile isolated-account stage has been removed from the **required** Windows Installer workflow. This does not constitute a pass for non-admin installations. That acceptance scenario remains **NOT VERIFIED** until it can run on an actual restricted Windows account with proper user-profile initialization. Existing Windows CI continues to test a real install/reinstall/uninstall in current-user mode and a real all-users install/uninstall, plus Python, GUI and build checks.
+
+Release status is **pending**. No code signing; unsigned warning is expected. No PR merging or public GitHub Release is included in this change.
