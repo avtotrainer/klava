@@ -35,7 +35,7 @@ jobs:
       - name: Install verification tools
         run: |
           python -m pip install --upgrade pip
-          python -m pip install pytest ruff
+          python -m pip install pytest ruff pillow==11.3.0
 
       - name: Validate Python syntax
         run: python -m compileall -q main.py trainer.py logic ui exercises scripts tests
