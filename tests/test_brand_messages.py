@@ -12,4 +12,4 @@ def test_translated_newlines():
 
 def test_missing_key_fallback_preserves_literal_newline():
     resources = Resources("resources", "en", "default")
-    assert resources.text("missing", "key", "one\\ntwo") == "one\ntwo"
+    assert resources.text("app", "not_found", "one\\ntwo") == "one\ntwo"
