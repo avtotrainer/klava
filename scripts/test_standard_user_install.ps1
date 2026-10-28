@@ -18,17 +18,21 @@ try {
     @'
 $ErrorActionPreference = 'Stop'
 Start-Transcript -Path (Join-Path $PSScriptRoot 'standard-user.log')
+'wrapper-start' | Set-Content (Join-Path $PSScriptRoot 'progress.txt')
 try {
     Set-Location $PSScriptRoot
     $env:LOCALAPPDATA = [Environment]::GetFolderPath('LocalApplicationData', 'Create')
     $env:TEMP = Join-Path $env:LOCALAPPDATA 'Temp'
     $env:TMP = $env:TEMP
     New-Item -ItemType Directory -Path $env:TEMP -Force | Out-Null
+    'running-installer-check' | Set-Content (Join-Path $PSScriptRoot 'progress.txt')
     & (Join-Path $PSScriptRoot 'test_windows_installer.ps1') -RequireStandardUser -Headless
     if (-not $?) { throw 'Installer verification failed' }
+    'completed-successfully' | Set-Content (Join-Path $PSScriptRoot 'progress.txt')
     Stop-Transcript
     exit 0
 } catch {
+    ('failed: ' + $_) | Set-Content (Join-Path $PSScriptRoot 'progress.txt')
     Write-Output $_
     Stop-Transcript
     exit 1
@@ -55,10 +59,12 @@ try {
             break
         }
     }
+    Write-Output "Task state: $((Get-ScheduledTask -TaskName $name).State); result: $($info.LastTaskResult); started: $($info.LastRunTime)"
+    if (Test-Path (Join-Path $testRoot 'progress.txt')) { Get-Content (Join-Path $testRoot 'progress.txt') }
     if (Test-Path (Join-Path $testRoot 'standard-user.log')) {
         Get-Content (Join-Path $testRoot 'standard-user.log')
     }
-    if (-not $finished) { throw 'Standard-user installer test exceeded 180 seconds' }
+    if (-not $finished) { throw 'Standard-user task did not finish: see task state, progress marker and transcript above' }
     if ($info.LastTaskResult -ne 0) { throw "Standard-user test exit: $($info.LastTaskResult)" }
 } finally {
     if (Get-ScheduledTask -TaskName $name -ErrorAction SilentlyContinue) {
