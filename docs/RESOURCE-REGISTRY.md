@@ -18,6 +18,7 @@
 
 | KLAVA visual identity | [resources/branding/](../resources/branding/README.md) | None | English | 1.0 (review branch) | Public on merge | canonical-only | 2026-10-28 |
 
+| Windows MSI school installer | [WINDOWS-MSI.md](WINDOWS-MSI.md) | None | Georgian docs / English build metadata | PR #13 draft | Public on merge | canonical-only | 2026-10-29 |
 | User KLV exercise library | [logic/exercise_library.py](../logic/exercise_library.py) | User-specific `%LOCALAPPDATA%/KLAVA` (runtime data, not synced) | English code / Georgian UI | PR #12 | Public code / private local exercises | canonical-only | 2026-10-28 |
 
 ## Sync modes and boundaries
