@@ -1,6 +1,5 @@
 """KLV selection and safe migration regression tests."""
 import sys
-from pathlib import Path
 
 import pytest
 
