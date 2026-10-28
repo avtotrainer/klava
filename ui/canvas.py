@@ -68,6 +68,21 @@ class Canvas:
             tags=("cover",),
         )
         self.canvas.tag_raise("cover")
+        self.canvas.bind("<Configure>", self._resize_cover)
+
+    def _resize_cover(self, event: tk.Event) -> None:
+        """Keep fullscreen cover centered and scaled to the current window."""
+        width, height = max(1, event.width), max(1, event.height)
+        self.width, self.height = width, height
+        self.canvas.coords(self.cover_rect, 0, 0, width, height)
+        self.canvas.coords(self.cover_text, width / 2, height / 2)
+        size = max(16, min(self.font_cover, int(min(width / 13, height / 8))))
+        self.canvas.itemconfigure(
+            self.cover_text,
+            font=(self.font_family, size, "bold"),
+            width=max(1, int(width * 0.88)),
+            justify="center",
+        )
 
     # ------------------------------
     def hide_keyboard(self) -> None:
