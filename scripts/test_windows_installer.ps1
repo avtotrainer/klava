@@ -14,7 +14,7 @@ $app = Join-Path $env:LOCALAPPDATA 'Programs/KLAVA'
 $data = Join-Path $env:LOCALAPPDATA 'KLAVA/exercises.klv'
 $menu = Join-Path ([Environment]::GetFolderPath('Programs')) 'KLAVA'
 if (Test-Path $app) { throw 'Refusing to test over an existing installation' }
-if (Test-Path (Split-Path $data)) { throw 'Refusing to test over existing user data' }
+$existingDataHash = if (Test-Path $data) { (Get-FileHash $data).Hash } else { $null }
 
 function Invoke-Setup {
     $process = Start-Process -FilePath $setup -ArgumentList '/CURRENTUSER /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP-' -Wait -PassThru
@@ -44,7 +44,11 @@ function Test-Launch {
 Invoke-Setup
 if (-not (Test-Path (Join-Path $app 'KLAVA.exe'))) { throw 'EXE not installed in the user profile' }
 if (-not (Test-Path (Join-Path $app 'default-exercises.klv'))) { throw 'Missing installed seed' }
-if (Test-Path $data) { throw 'Installer must not create exercise data' }
+if ($existingDataHash) {
+    if ((Get-FileHash $data).Hash -ne $existingDataHash) { throw 'Installer modified pre-existing exercises' }
+} elseif (Test-Path $data) {
+    throw 'Installer must not create exercise data'
+}
 $uninstallKey = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\KLAVA.CurrentUser_is1'
 if (-not (Test-Path $uninstallKey)) { throw 'Missing per-user uninstall registration' }
 if (Test-Path 'HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\KLAVA.CurrentUser_is1') {
