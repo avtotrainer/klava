@@ -8,6 +8,7 @@ from tkinter import messagebox
 from typing import Optional
 
 from logic.config import Config
+from logic.exercise_library import available_exercises, choose_exercise, selected_exercise
 from logic.resources import Resources, bundled_path, exercise_path, prepare_exercise_file
 
 from ui.canvas import Canvas
@@ -98,6 +99,7 @@ class Trainer:
             root=self.root,
             texts=self.res,
             on_start=self.start_training,
+            on_select_exercise=self.select_exercise,
             on_exit=self.root.destroy,
             on_about=self._about,
         )
@@ -116,6 +118,44 @@ class Trainer:
     # ==================================================
     # TRAINING
     # ==================================================
+    def select_exercise(self) -> None:
+        """Select a KLV from the current user's library."""
+        if self.training_active:
+            return
+        try:
+            prepare_exercise_file(self.cfg.get("training", "sentence_file", fallback="data/sentences.txt"))
+            choices = available_exercises()
+        except OSError as error:
+            messagebox.showerror(self.res.text("errors", "title", "Error"), str(error))
+            return
+        dialog = tk.Toplevel(self.root)
+        dialog.title(self.res.text("app", "select_exercise", "Select exercise"))
+        dialog.transient(self.root)
+        dialog.resizable(False, False)
+        tk.Label(dialog, text=self.res.text("dialogs", "select_exercise", "Choose a KLV file")).pack(padx=24, pady=(20, 8))
+        box = tk.Listbox(dialog, width=45, height=min(12, max(3, len(choices))), exportselection=False)
+        box.pack(padx=24)
+        for index, item in enumerate(choices):
+            box.insert(tk.END, item.name)
+            if item == selected_exercise():
+                box.selection_set(index)
+                box.see(index)
+
+        def confirm() -> None:
+            selected = box.curselection()
+            if selected:
+                try:
+                    choose_exercise(choices[selected[0]])
+                except (OSError, ValueError) as error:
+                    messagebox.showerror(self.res.text("errors", "title", "Error"), str(error), parent=dialog)
+                    return
+                dialog.destroy()
+
+        tk.Button(dialog, text="OK", command=confirm).pack(pady=16)
+        box.bind("<Double-Button-1>", lambda _event: confirm())
+        dialog.bind("<Escape>", lambda _event: dialog.destroy())
+        dialog.grab_set()
+
     def start_training(self) -> None:
         if self.training_active:
             return
