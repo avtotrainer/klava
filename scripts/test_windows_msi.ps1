@@ -11,6 +11,19 @@ function Invoke-Msi([string[]]$Arguments) {
     $p = Start-Process -FilePath msiexec.exe -ArgumentList $Arguments -Wait -PassThru
     if ($p.ExitCode -ne 0) { throw "msiexec exit code $($p.ExitCode); arguments: $Arguments" }
 }
+# Simulate an EXE installation without changing application data.
+$innoKey = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\KLAVA.CurrentUser_is1'
+if (Test-Path $innoKey) { throw 'Runner contains Inno KLAVA' }
+try {
+    New-Item -Path $innoKey -Force | Out-Null
+    New-ItemProperty -Path $innoKey -Name UninstallString -Value 'C:\test\unins000.exe' -PropertyType String | Out-Null
+    $blocked = Start-Process msiexec.exe -ArgumentList @('/i', ('"' + $msi + '"'), '/qn', '/norestart') -Wait -PassThru
+    if ($blocked.ExitCode -eq 0) { throw 'MSI allowed duplicate KLAVA installation' }
+    if (Test-Path $exe) { throw 'MSI wrote files during rejected install' }
+    Write-Output "Duplicate installation rejected: $($blocked.ExitCode)"
+} finally {
+    Remove-Item -Path $innoKey -Recurse -Force -ErrorAction SilentlyContinue
+}
 try {
     Invoke-Msi @('/i', "`"$msi`"", '/qn', '/norestart', '/L*v', "`"$log`"")
     if (!(Test-Path $exe) -or !(Test-Path $klv)) { throw 'Expected MSI payload is missing' }
