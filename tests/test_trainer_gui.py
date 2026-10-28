@@ -40,5 +40,15 @@ def test_real_widgets_session_and_reload(tmp_path, monkeypatch):
         assert trainer.exercise.sentence == "B A"
         trainer._secret_finish()
         assert not trainer.training_active
+        # The completed-message overlay must track actual Tk canvas dimensions.
+        trainer.ui.canvas.config(width=800, height=600)
+        root.update()
+        w, h = trainer.ui.canvas.winfo_width(), trainer.ui.canvas.winfo_height()
+        assert trainer.ui.canvas.coords(trainer.ui.cover_text) == [w / 2, h / 2]
+        assert trainer.ui.canvas.coords(trainer.ui.cover_rect) == [0.0, 0.0, float(w), float(h)]
+        trainer._about()
+        root.update()
+        dialog = next(child for child in root.winfo_children() if isinstance(child, tk.Toplevel))
+        dialog.destroy()
     finally:
         root.destroy()
