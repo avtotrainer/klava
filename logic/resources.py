@@ -42,6 +42,8 @@ def prepare_exercise_file(source_path: str) -> Path:
         else:
             seed = bundled_path(source_path)
         legacy = directory / "exercises.txt"
+        if not legacy.is_file() and getattr(sys, "frozen", False):
+            legacy = Path(sys.executable).resolve().parent / "exercises.txt"
         if legacy.is_file():
             seed = legacy
         if not seed.is_file():
