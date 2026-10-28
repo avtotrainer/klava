@@ -244,3 +244,7 @@ CI-ის პირველი non-admin მცდელობა ([run 4062964
 - CI verifies standard-user installation, per-user installation lifecycle, machine-wide installation/uninstall and portable ZIP shape. Results must be read from the run logs; configuration alone is not proof of success.
 
 **Rollback:** uninstall executable via Windows Apps without removing `%LOCALAPPDATA%\\KLAVA`. Existing `exercises.txt` remains as a migration source. Keep backups when editing user content. The previous `.txt` portable file is not read by the new portable format except for a prior user-library migration.
+
+### CI diagnostic follow-up — 2026-10-28
+
+The dedicated Windows standard-user task previously exceeded its 180-second window in [run 40705931548](https://github.com/avtotrainer/klava/actions/runs/40705931548). The same run independently passed current-user installer lifecycle and all-users installation/uninstall; those checks do **not** prove non-admin execution in the isolated account. The last step now captures Task Scheduler state, last exit code, a progress marker and the temporary user's PowerShell transcript before reporting failure. These traces distinguish a task that never starts from a hanging installer or executable. No production user accounts or profiles are changed by this CI-only diagnostic update.
