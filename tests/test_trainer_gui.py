@@ -17,8 +17,11 @@ def test_real_widgets_session_and_reload(tmp_path, monkeypatch):
     monkeypatch.setattr(sys, "frozen", True, raising=False)
     monkeypatch.setattr(sys, "executable", str(tmp_path / "KLAVA.exe"))
     monkeypatch.chdir(tmp_path)
-    exercises = tmp_path / "exercises.txt"
-    exercises.write_text("A B\nB\n", encoding="utf-8")
+    monkeypatch.setenv("LOCALAPPDATA", str(tmp_path / "user-local"))
+    seed = tmp_path / "exercises.klv"
+    seed.write_text("A B\nB\n", encoding="utf-8")
+    from logic.resources import prepare_exercise_file
+    exercises = prepare_exercise_file("data/sentences.klv")
     root = tk.Tk()
     try:
         trainer = Trainer(root)
