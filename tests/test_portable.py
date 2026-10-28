@@ -20,6 +20,7 @@ def portable(tmp_path, monkeypatch):
     monkeypatch.setattr(sys, "executable", str(folder / "KLAVA.exe"))
     monkeypatch.setattr(sys, "_MEIPASS", str(tmp_path / "unrelated-extraction"), raising=False)
     monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("LOCALAPPDATA", str(tmp_path / "user" / "Local"))
     trainer = Trainer.__new__(Trainer)
     trainer.cfg = Config()
     trainer.res = Resources("resources", "ka", "default")
@@ -32,13 +33,17 @@ def portable(tmp_path, monkeypatch):
     trainer.exercise = None
     trainer.sentences = []
     trainer.current_index = 0
-    return trainer, folder / "exercises.txt"
+    (folder / "exercises.klv").write_text("A\nB\n", encoding="utf-8")
+    from logic.resources import prepare_exercise_file
+    return trainer, prepare_exercise_file("data/sentences.txt")
 
 
 def test_source_paths_ignore_working_directory(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     monkeypatch.delattr(sys, "frozen", raising=False)
-    assert exercise_path("data/sentences.txt").is_file()
+    monkeypatch.setenv("LOCALAPPDATA", str(tmp_path / "Local"))
+    from logic.resources import prepare_exercise_file
+    assert prepare_exercise_file("data/sentences.txt").is_file()
     assert Config().getint("training", "min_lines") == 2
     assert Resources("resources", "ka", "default").keyboard_model["groups"]
 
@@ -65,14 +70,16 @@ def test_invalid_exercises_leave_session_inactive_and_file_unchanged(portable, m
     errors = Mock()
     monkeypatch.setattr("trainer.messagebox.showerror", errors)
     trainer.start_training()
+    if contents is None:
+        assert trainer.training_active
+        trainer._secret_finish()
+        return
     errors.assert_called_once()
     assert errors.call_args.args[1]
     assert not trainer.training_active
     trainer.menu.hide.assert_not_called()
     trainer.root.attributes.assert_not_called()
-    if contents is None:
-        assert not path.exists()
-    else:
+    if contents is not None:
         assert path.read_bytes() == contents
     if contents == b"\xff\xfe\x00\x00":
         assert "UTF-8" in errors.call_args.args[1]
@@ -112,8 +119,8 @@ def test_seed_is_supported_and_packaging_is_exact(tmp_path):
     (tmp_path / "dist/KLAVA.exe").write_bytes(b"test executable placeholder")
     archive = package(tmp_path)
     with ZipFile(archive) as zipped:
-        assert sorted(zipped.namelist()) == ["KLAVA/KLAVA.exe", "KLAVA/exercises.txt"]
-        assert zipped.read("KLAVA/exercises.txt") == seed
+        assert sorted(zipped.namelist()) == ["KLAVA/KLAVA.exe", "KLAVA/exercises.klv"]
+        assert zipped.read("KLAVA/exercises.klv") == seed
     (tmp_path / "dist/KLAVA/unexpected.ini").touch()
     with pytest.raises(ValueError, match="exactly"):
         package(tmp_path)
