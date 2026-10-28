@@ -16,7 +16,7 @@ def welcome_image(width: int, height: int) -> ImageTk.PhotoImage | None:
     if not path.is_file():
         return None
     with Image.open(path) as source:
-        source = source.convert("RGB")
+        source = source.convert("RGBA")
         # Photo's first 48px depict a simulated Windows title bar, which the
         # real Tk window already provides; avoid a second fake title bar.
         if source.width == 1448 and source.height == 1086:
@@ -26,5 +26,5 @@ def welcome_image(width: int, height: int) -> ImageTk.PhotoImage | None:
         fitted.thumbnail(image.size, Image.Resampling.LANCZOS)
         x = (image.width - fitted.width) // 2
         y = (image.height - fitted.height) // 2
-        image.paste(fitted, (x, y))
+        image.paste(fitted, (x, y), fitted.getchannel("A"))
     return ImageTk.PhotoImage(image)
