@@ -1,6 +1,7 @@
 ## [Unreleased]
 
 ### Added
+- Editable KLAVA F/J brand SVGs, reproducible PNG/ICO generator, and integration with Windows executable/installer build.
 - Current-user installer without administrator elevation, with Start-menu launch/editor shortcuts, optional desktop shortcut and uninstaller.
 - Per-user installed exercises, preserved across reinstall/uninstall, with installer lifecycle CI checks.
 - Windows x64 portable onefile build, exact two-file ZIP validation, and PR/manual Actions artifacts.
