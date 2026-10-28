@@ -43,3 +43,17 @@ def test_legacy_txt_migrates_without_deleting_original(tmp_path, monkeypatch):
     new.write_bytes(b"EDITED\nUSER\n")
     prepare_exercise_file("data/sentences.txt")
     assert new.read_bytes() == b"EDITED\nUSER\n"
+
+
+def test_portable_txt_next_to_exe_is_migrated(tmp_path, monkeypatch):
+    app_dir = tmp_path / "portable"
+    app_dir.mkdir()
+    (app_dir / "exercises.klv").write_bytes(b"NEW\\nSEED\\n")
+    old = app_dir / "exercises.txt"
+    old.write_bytes(b"PREVIOUS\\nEDITS\\n")
+    monkeypatch.setenv("LOCALAPPDATA", str(tmp_path / "user"))
+    monkeypatch.setattr(sys, "frozen", True, raising=False)
+    monkeypatch.setattr(sys, "executable", str(app_dir / "KLAVA.exe"))
+    path = prepare_exercise_file("data/sentences.klv")
+    assert path.read_bytes() == old.read_bytes()
+    assert old.exists()
