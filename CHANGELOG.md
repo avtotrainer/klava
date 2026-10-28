@@ -1,5 +1,8 @@
 ## [Unreleased]
 
+### UI
+- Replace initial welcome text with instructional QWERTY home-row hand-placement illustration; open window at 800×600 while retaining training fullscreen mode.
+
 ### Added
 - Per-user `.klv` exercise library with persistent selection and lossless legacy `.txt` migration.
 - Windows installer choice between current-user and all-users installation modes; portable two-file `.klv` payload.
