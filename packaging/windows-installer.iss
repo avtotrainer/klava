@@ -41,6 +41,18 @@ Name: "{autodesktop}\KLAVA"; Filename: "{app}\KLAVA.exe"; Tasks: desktopicon
 Filename: "{app}\KLAVA.exe"; Description: "Launch KLAVA"; Flags: nowait postinstall skipifsilent runasoriginaluser
 
 [Code]
+function InitializeSetup(): Boolean;
+begin
+  Result := True;
+  // MSI registers this marker for its all-users Start menu component.
+  // Never remove MSI data or files automatically: prompt the user instead.
+  if RegKeyExists(HKLM64, 'Software\KLAVA\MSI') then
+  begin
+    MsgBox('KLAVA is already installed using the MSI package. Uninstall the MSI version before running this EXE installer.', mbError, MB_OK);
+    Result := False;
+  end;
+end;
+
 function KlavaInstallDir(Param: String): String;
 begin
   if IsAdminInstallMode then
