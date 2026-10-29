@@ -1,3 +1,22 @@
+# KLAVA — Beta release status
+
+**Published:** 2026-10-29, `v0.3.1-beta.1` (public GitHub Pre-release).
+
+**Verified:** https://github.com/avtotrainer/klava/releases/tag/v0.3.1-beta.1
+
+- EXE: https://github.com/avtotrainer/klava/releases/download/v0.3.1-beta.1/KLAVA-Setup-x64.exe
+- MSI: https://github.com/avtotrainer/klava/releases/download/v0.3.1-beta.1/KLAVA-x64.msi
+- SHA256: https://github.com/avtotrainer/klava/releases/download/v0.3.1-beta.1/SHA256SUMS.txt
+- GitHub Actions build and publication verified: https://github.com/avtotrainer/klava/actions/runs/40791969804
+- Main source integration: https://github.com/avtotrainer/klava/pull/18
+- Release source commit: `51a3ec940b0ea1541000b1cbb231c61da1120c7e`.
+
+The automated beta workflow published this approved release on push to main that changed its workflow file. Its publishing job only runs for that push event, and refuses to overwrite an existing tag. For **future releases**, review and redesign the release trigger/inputs and explicit authorization; don't assume there is a general release automation already enabled.
+
+**Tester acceptance still needed:** physical Windows visual check of new startup artwork, real restricted account installation, MSI upgrades between versions, GPO/Intune deployment, and code signing. Store no identifiable student data in reports.
+
+---
+
 # KLAVA — beta release preparation / handoff
 
 **State:** Prepared in a review branch, not published. Public Release needs separate owner approval and merges into `main`.
