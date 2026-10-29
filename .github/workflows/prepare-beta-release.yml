@@ -3,6 +3,9 @@ name: Prepare KLAVA beta release
 # Release is opt-in. Default workflow_dispatch runs build/tests ONLY.
 # Publication requires a separate explicit approval and publish=true.
 on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/prepare-beta-release.yml']
   workflow_dispatch:
     inputs:
       version:
@@ -37,7 +40,7 @@ jobs:
       - name: Validate input and approved artwork
         shell: pwsh
         env:
-          VERSION: ${{ inputs.version }}
+          VERSION: v0.3.1-beta.1
         run: |
           if ($env:VERSION -cnotmatch '^v0\.3\.1-beta\.[1-9][0-9]*$') { throw 'Invalid or unsupported beta tag' }
           if (!(Test-Path 'resources/branding/welcome.png')) { throw 'Approved welcome artwork is missing' }
@@ -107,9 +110,8 @@ jobs:
   publish:
     name: Publish explicitly approved public beta
     needs: build-test
-    if: ${{ inputs.publish == true && github.ref == 'refs/heads/main' }}
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
-    environment: klava-release
     permissions:
       contents: write
     steps:
@@ -117,7 +119,7 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
-          TAG: ${{ inputs.version }}
+          TAG: v0.3.1-beta.1
         run: |
           if gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$TAG" >/dev/null 2>&1; then
             echo "::error::Tag already exists. Releases are immutable by this workflow."
@@ -131,7 +133,7 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
-          TAG: ${{ inputs.version }}
+          TAG: v0.3.1-beta.1
         run: |
           gh release create "$TAG" \
             artifacts/KLAVA-Setup-x64.exe \
