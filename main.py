@@ -11,7 +11,7 @@ from logic.resources import exercise_path, prepare_exercise_file
 from logic.single_instance import single_instance
 from trainer import Trainer
 
-__version__ = "0.3.1-beta.1"
+__version__ = "0.3.2-beta.1"
 
 
 def main() -> None:

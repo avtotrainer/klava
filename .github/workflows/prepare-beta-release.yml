@@ -1,7 +1,8 @@
 name: Prepare KLAVA beta release
 
-# Release is opt-in. Default workflow_dispatch runs build/tests ONLY.
-# Publication requires a separate explicit approval and publish=true.
+# Publication is authorized for v0.3.2-beta.1 only.
+# Push publication requires the exact release marker in the merge commit.
+# Manual runs default to build-only; publish=true is explicit.
 on:
   push:
     branches: [main]
@@ -9,10 +10,10 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Pre-release tag (for example v0.3.1-beta.1)"
+        description: "Pre-release tag (for example v0.3.2-beta.1)"
         type: string
         required: true
-        default: "v0.3.1-beta.1"
+        default: "v0.3.2-beta.1"
       publish:
         description: "Publish a public GitHub pre-release (requires owner approval)"
         type: boolean
@@ -23,7 +24,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: klava-beta-${{ inputs.version }}
+  group: klava-beta-v0.3.2-beta.1
   cancel-in-progress: false
 
 jobs:
@@ -40,9 +41,9 @@ jobs:
       - name: Validate input and approved artwork
         shell: pwsh
         env:
-          VERSION: v0.3.1-beta.1
+          VERSION: ${{ inputs.version || 'v0.3.2-beta.1' }}
         run: |
-          if ($env:VERSION -cnotmatch '^v0\.3\.1-beta\.[1-9][0-9]*$') { throw 'Invalid or unsupported beta tag' }
+          if ($env:VERSION -cne 'v0.3.2-beta.1') { throw 'Invalid or unsupported beta tag' }
           if (!(Test-Path 'resources/branding/welcome.png')) { throw 'Approved welcome artwork is missing' }
       - name: Install pinned dependencies
         run: python -m pip install pyinstaller==6.16.0 pytest==8.4.2 ruff==0.14.2 pillow==11.3.0
@@ -110,7 +111,10 @@ jobs:
   publish:
     name: Publish explicitly approved public beta
     needs: build-test
-    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    if: >-
+      github.ref == 'refs/heads/main' &&
+      ((github.event_name == 'push' && contains(github.event.head_commit.message, '[publish v0.3.2-beta.1]')) ||
+       (github.event_name == 'workflow_dispatch' && inputs.publish && inputs.version == 'v0.3.2-beta.1'))
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -120,7 +124,7 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
-          TAG: v0.3.1-beta.1
+          TAG: v0.3.2-beta.1
         run: |
           if gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$TAG" >/dev/null 2>&1; then
             echo "::error::Tag already exists. Releases are immutable by this workflow."
@@ -134,7 +138,7 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
-          TAG: v0.3.1-beta.1
+          TAG: v0.3.2-beta.1
         run: |
           gh release create "$TAG" \
             artifacts/KLAVA-Setup-x64.exe \
@@ -144,7 +148,15 @@ jobs:
             --title "KLAVA $TAG — test release" \
             --notes-file /dev/stdin \
             --prerelease <<'NOTES'
-          KLAVA Windows beta for invited teacher testers.
+          KLAVA v0.3.2-beta.1 — ერთი სასწავლო სესია თითო მომხმარებლისთვის.
+
+          გამოსწორებულია განმეორებითი გაშვებისას მრავალი ფანჯრის გახსნა (PR #19).
+          მეორე გაშვება აღარ ქმნის მეორე სასწავლო სესიას. დახურვის ან ავარიული
+          დასრულების შემდეგ ხელახლა გაშვება შესაძლებელია. სავარჯიშოები ინახება.
+          EXE ვერსია: 0.3.2-beta.1; MSI ProductVersion: 0.3.2.
+
+          Verified: regression tests, real Tk widgets, frozen EXE duplicate launch,
+          EXE current-user/all-users install lifecycle, MSI install/uninstall, SHA256.
 
           EXE: choose Current User or All Users during installation.
           MSI: administrator-managed, per-machine installation.
