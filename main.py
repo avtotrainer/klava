@@ -9,7 +9,7 @@ from tkinter import messagebox
 from logic.resources import exercise_path, prepare_exercise_file
 from trainer import Trainer
 
-__version__ = "0.3.1-alfa"
+__version__ = "0.3.1-beta.1"
 
 
 def main() -> None:
