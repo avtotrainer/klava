@@ -3,7 +3,7 @@
 [Setup]
 AppId=KLAVA.CurrentUser
 AppName=KLAVA
-AppVersion=0.3.1-alpha
+AppVersion=0.3.1-beta.1
 AppPublisher=KLAVA
 DefaultDirName={code:KlavaInstallDir}
 DefaultGroupName=KLAVA
