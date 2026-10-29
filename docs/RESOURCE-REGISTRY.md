@@ -18,7 +18,7 @@
 
 | KLAVA visual identity | [resources/branding/](../resources/branding/README.md) | None | English | 1.0 (review branch) | Public on merge | canonical-only | 2026-10-28 |
 
-| Beta release workflow and checklist | [RELEASE-PREPARATION.md](RELEASE-PREPARATION.md) | [Published beta](https://github.com/avtotrainer/klava/releases/tag/v0.3.1-beta.1) | Georgian/English | v0.3.1-beta.1 published | Public | in-sync | 2026-10-29 |
+| Beta release workflow and checklist | [RELEASE-PREPARATION.md](RELEASE-PREPARATION.md) | [Published beta](https://github.com/avtotrainer/klava/releases/tag/v0.3.1-beta.1) | Georgian/English | v0.3.2-beta.1 preparation; previous beta published | Public | repo-ahead | 2026-10-30 |
 | Windows MSI school installer | [WINDOWS-MSI.md](WINDOWS-MSI.md) | None | Georgian docs / English build metadata | PR #13 draft | Public on merge | canonical-only | 2026-10-29 |
 | User KLV exercise library | [logic/exercise_library.py](../logic/exercise_library.py) | User-specific `%LOCALAPPDATA%/KLAVA` (runtime data, not synced) | English code / Georgian UI | PR #12 | Public code / private local exercises | canonical-only | 2026-10-28 |
 
