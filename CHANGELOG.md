@@ -19,6 +19,7 @@
 - Project knowledge, resource registry, and draft operational ChatGPT instructions.
 
 ### Fixed
+- Prevent duplicate trainer windows with an OS-backed per-user lifetime lock; release automatically after exit or crash, while retaining the exercise-editor shortcut.
 - Interpret escaped `\\n` in localized messages, scale full-screen cover text with the actual window, and display the KLAVA icon in the title bar/About dialog.\n\n### Changed
 - Windows distribution is installer-only; portable ZIP packaging/upload removed from CI (existing installer scope choices retained).
 - Frozen builds read editable `exercises.txt` beside the executable; source runs preserve configured exercises.

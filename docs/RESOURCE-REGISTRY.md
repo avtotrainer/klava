@@ -22,6 +22,8 @@
 | Windows MSI school installer | [WINDOWS-MSI.md](WINDOWS-MSI.md) | None | Georgian docs / English build metadata | PR #13 draft | Public on merge | canonical-only | 2026-10-29 |
 | User KLV exercise library | [logic/exercise_library.py](../logic/exercise_library.py) | User-specific `%LOCALAPPDATA%/KLAVA` (runtime data, not synced) | English code / Georgian UI | PR #12 | Public code / private local exercises | canonical-only | 2026-10-28 |
 
+| Single-instance startup handout | [01-main.md](01-main.md) | None | Georgian | fix/single-instance | Public repository | canonical-only | 2026-10-29 |
+
 ## Sync modes and boundaries
 
 - **canonical-only:** source exists, with no authorized or required mirror.

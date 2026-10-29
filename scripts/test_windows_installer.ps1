@@ -36,6 +36,21 @@ function Test-Launch {
             if ($process.HasExited) { throw 'Installed EXE exited before opening its window' }
         }
         if (-not $found) { throw 'Installed KLAVA window did not appear' }
+        # PyInstaller onefile has a bootloader process and an application process.
+        # A second launch must exit, while the first application's window survives.
+        $duplicate = Start-Process -FilePath $exe -WorkingDirectory $env:TEMP -PassThru
+        try {
+            if (-not $duplicate.WaitForExit(30000)) { throw 'Duplicate KLAVA did not exit' }
+            if ($duplicate.ExitCode -ne 0) { throw 'Duplicate launch failed unexpectedly' }
+            $process.Refresh()
+            if ($process.HasExited) { throw 'Duplicate launch stopped the original KLAVA' }
+            if (-not $Headless) {
+                $windows = @(Get-Process | Where-Object { $_.Path -eq $exe -and $_.MainWindowTitle -like 'KLAVA*' })
+                if ($windows.Count -ne 1) { throw 'Expected exactly one KLAVA window' }
+            }
+        } finally {
+            if (-not $duplicate.HasExited) { taskkill /PID $duplicate.Id /T /F }
+        }
     } finally {
         taskkill /PID $process.Id /T /F
     }
