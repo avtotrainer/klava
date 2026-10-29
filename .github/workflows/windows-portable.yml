@@ -1,0 +1,55 @@
+name: Windows Installer
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          architecture: x64
+      - name: Install build and verification tools
+        run: python -m pip install pyinstaller==6.16.0 pytest==8.4.2 ruff==0.14.2 pillow==11.3.0
+      - name: Check code and regression tests
+        run: |
+          python -m compileall -q main.py trainer.py logic ui exercises scripts tests
+          python -m ruff check .
+          python -m pytest -q
+          python scripts/check_resource_links.py
+      - name: Exercise real Tk widgets on Windows runner
+        env:
+          KLAVA_GUI_TEST: '1'
+        run: python -m pytest -q tests/test_trainer_gui.py
+      - name: Generate Windows branding assets
+        run: python scripts/generate_brand_assets.py
+      - name: Build standalone windowed executable
+        run: python -m PyInstaller --clean --noconfirm KLAVA.spec
+      - name: Build dual-scope Windows installer
+        shell: pwsh
+        run: |
+          $compiler = Join-Path ${env:ProgramFiles(x86)} 'Inno Setup 6/ISCC.exe'
+          if (-not (Test-Path $compiler)) { throw 'Inno Setup 6 compiler missing from runner image' }
+          & $compiler packaging/windows-installer.iss
+          if ($LASTEXITCODE -ne 0) { throw 'Inno Setup compilation failed' }
+      - name: Verify installation, upgrade and uninstall
+        shell: pwsh
+        run: ./scripts/test_windows_installer.ps1
+      - name: Verify all-users installation and uninstall
+        shell: pwsh
+        run: ./scripts/test_all_users_install.ps1
+      - name: Upload Windows installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: KLAVA-installer-x64
+          path: dist/KLAVA-Setup-x64.exe
+          if-no-files-found: error
+          retention-days: 30

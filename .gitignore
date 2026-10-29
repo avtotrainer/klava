@@ -161,3 +161,9 @@ cython_debug/
 
 # direnv cache
 .direnv/
+
+# Versioned portable build specification
+!KLAVA.spec
+
+# Reproducible generated branding (built during packaging)
+/resources/branding/generated/

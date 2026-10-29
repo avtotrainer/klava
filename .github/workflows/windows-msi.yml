@@ -1,0 +1,49 @@
+name: Windows MSI
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  msi:
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          architecture: x64
+      - name: Install Python build tools
+        run: python -m pip install pyinstaller==6.16.0 pillow==11.3.0
+      - name: Prepare executable and exercise payload
+        shell: pwsh
+        run: |
+          python scripts/generate_brand_assets.py
+          if ($LASTEXITCODE -ne 0) { throw 'Brand generation failed' }
+          python -m PyInstaller --clean --noconfirm KLAVA.spec
+          if ($LASTEXITCODE -ne 0) { throw 'PyInstaller failed' }
+          Copy-Item data/sentences.klv dist/default-exercises.klv
+      - name: Install pinned WiX Toolset
+        shell: pwsh
+        run: |
+          dotnet tool install --global wix --version 6.0.2
+          if ($LASTEXITCODE -ne 0) { throw 'WiX installation failed' }
+          wix --version
+      - name: Build MSI
+        shell: pwsh
+        run: |
+          wix build -arch x64 -d "SourceDir=$((Resolve-Path dist).Path)" -o dist/KLAVA-x64.msi packaging/windows-msi.wxs
+          if ($LASTEXITCODE -ne 0) { throw 'WiX build failed' }
+      - name: Validate MSI installation and removal
+        shell: pwsh
+        run: ./scripts/test_windows_msi.ps1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: KLAVA-msi-x64
+          path: dist/KLAVA-x64.msi
+          if-no-files-found: error
+          retention-days: 30

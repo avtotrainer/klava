@@ -14,6 +14,13 @@
 | Synchronization runbook | [KLAVA-SYNC-RUNBOOK.md](KLAVA-SYNC-RUNBOOK.md) | None | Georgian | 1.0 | Public | canonical-only | 2026-10-27 |
 | Teaching resources | https://drive.google.com/drive/folders/1TH7yghuaJYTEw4_qS0p_lYdoLOWLGw4G | None | Georgian | Empty root at verification | Access restricted/unspecified | canonical-only | 2026-10-27 |
 | Slack coordination | https://aklava.slack.com | [#new-channel](https://app.slack.com/client/T0CC5794W2X/C0CBW35EM0F) | Georgian | Workspace and channel read verified again; Project Source linking separately fails with MCP error | Workspace/channel readable; other visibility unknown | unknown | 2026-10-27 |
+| Windows Portable / Installer handout | [WINDOWS-PORTABLE.md](WINDOWS-PORTABLE.md) | None | Georgian | 1.2 (per-user installer branch) | Public repository | canonical-only | 2026-10-28 |
+
+| KLAVA visual identity | [resources/branding/](../resources/branding/README.md) | None | English | 1.0 (review branch) | Public on merge | canonical-only | 2026-10-28 |
+
+| Beta release workflow and checklist | [RELEASE-PREPARATION.md](RELEASE-PREPARATION.md) | GitHub Releases (not yet published) | Georgian/English | v0.3.1-beta.1 candidate | Public upon authorization | canonical-only | 2026-10-29 |
+| Windows MSI school installer | [WINDOWS-MSI.md](WINDOWS-MSI.md) | None | Georgian docs / English build metadata | PR #13 draft | Public on merge | canonical-only | 2026-10-29 |
+| User KLV exercise library | [logic/exercise_library.py](../logic/exercise_library.py) | User-specific `%LOCALAPPDATA%/KLAVA` (runtime data, not synced) | English code / Georgian UI | PR #12 | Public code / private local exercises | canonical-only | 2026-10-28 |
 
 ## Sync modes and boundaries
 

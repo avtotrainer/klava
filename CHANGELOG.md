@@ -1,6 +1,16 @@
 ## [Unreleased]
 
+### UI
+- Replace initial welcome text with instructional QWERTY home-row hand-placement illustration; open window at 800×600 while retaining training fullscreen mode.
+
 ### Added
+- Per-user `.klv` exercise library with persistent selection and lossless legacy `.txt` migration.
+- Windows installer choice between current-user and all-users installation modes; portable two-file `.klv` payload.
+- Editable KLAVA F/J brand SVGs, reproducible PNG/ICO generator, and integration with Windows executable/installer build.
+- Current-user installer without administrator elevation, with Start-menu launch/editor shortcuts, optional desktop shortcut and uninstaller.
+- Per-user installed exercises, preserved across reinstall/uninstall, with installer lifecycle CI checks.
+- Windows x64 portable onefile build, exact two-file ZIP validation, and PR/manual Actions artifacts.
+- Portable path, UTF-8 input, session reload, packaging and opt-in real Tk regression tests.
 - Authorized daily 09:00 Asia/Tbilisi cross-resource audit through a scheduled ChatGPT task (first execution not yet verified).
 - Read-only local Markdown link audit, regression tests, and scheduled GitHub Actions configuration (default-branch activation pending).
 - Georgian technical handout for synchronization, external-access limitations, safety, and rollback.
@@ -8,7 +18,11 @@
 - Focused behavioral regression tests and GitHub Actions validation in the project foundation branch.
 - Project knowledge, resource registry, and draft operational ChatGPT instructions.
 
-### Changed
+### Fixed
+- Interpret escaped `\\n` in localized messages, scale full-screen cover text with the actual window, and display the KLAVA icon in the title bar/About dialog.\n\n### Changed
+- Windows distribution is installer-only; portable ZIP packaging/upload removed from CI (existing installer scope choices retained).
+- Frozen builds read editable `exercises.txt` beside the executable; source runs preserve configured exercises.
+- Resource paths no longer depend on the current working directory; invalid exercise encoding gets a localized UTF-8 error.
 - Documentation aligned with implemented code and documented learning requirements.
 
 ### Internal

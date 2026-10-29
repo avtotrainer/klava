@@ -1,0 +1,158 @@
+name: Prepare KLAVA beta release
+
+# Release is opt-in. Default workflow_dispatch runs build/tests ONLY.
+# Publication requires a separate explicit approval and publish=true.
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/prepare-beta-release.yml']
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Pre-release tag (for example v0.3.1-beta.1)"
+        type: string
+        required: true
+        default: "v0.3.1-beta.1"
+      publish:
+        description: "Publish a public GitHub pre-release (requires owner approval)"
+        type: boolean
+        required: true
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: klava-beta-${{ inputs.version }}
+  cancel-in-progress: false
+
+jobs:
+  build-test:
+    name: Validate and package both Windows installers
+    runs-on: windows-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          architecture: x64
+      - name: Validate input and approved artwork
+        shell: pwsh
+        env:
+          VERSION: v0.3.1-beta.1
+        run: |
+          if ($env:VERSION -cnotmatch '^v0\.3\.1-beta\.[1-9][0-9]*$') { throw 'Invalid or unsupported beta tag' }
+          if (!(Test-Path 'resources/branding/welcome.png')) { throw 'Approved welcome artwork is missing' }
+      - name: Install pinned dependencies
+        run: python -m pip install pyinstaller==6.16.0 pytest==8.4.2 ruff==0.14.2 pillow==11.3.0
+      - name: Run code and regression checks
+        run: |
+          python -m compileall -q main.py trainer.py logic ui exercises scripts tests
+          python -m ruff check .
+          python -m pytest -q
+          python scripts/check_resource_links.py
+      - name: Exercise real Tk widgets
+        env:
+          KLAVA_GUI_TEST: '1'
+        run: python -m pytest -q tests/test_trainer_gui.py
+      - name: Create frozen executable and branding
+        shell: pwsh
+        run: |
+          python scripts/generate_brand_assets.py
+          if ($LASTEXITCODE -ne 0) { throw 'Branding failed' }
+          python -m PyInstaller --clean --noconfirm KLAVA.spec
+          if ($LASTEXITCODE -ne 0) { throw 'PyInstaller failed' }
+          Copy-Item data/sentences.klv dist/default-exercises.klv
+      - name: Build and verify EXE installer
+        shell: pwsh
+        run: |
+          $iscc = Join-Path ${env:ProgramFiles(x86)} 'Inno Setup 6/ISCC.exe'
+          & $iscc packaging/windows-installer.iss
+          if ($LASTEXITCODE -ne 0) { throw 'Inno Setup build failed' }
+          ./scripts/test_windows_installer.ps1
+          if ($LASTEXITCODE -ne 0) { throw 'Current-user installer test failed' }
+          ./scripts/test_all_users_install.ps1
+          if ($LASTEXITCODE -ne 0) { throw 'All-users installer test failed' }
+      - name: Install WiX and build MSI
+        shell: pwsh
+        run: |
+          dotnet tool install --global wix --version 6.0.2
+          if ($LASTEXITCODE -ne 0) { throw 'WiX installation failed' }
+          wix build -arch x64 -d "SourceDir=$((Resolve-Path dist).Path)" -o dist/KLAVA-x64.msi packaging/windows-msi.wxs
+          if ($LASTEXITCODE -ne 0) { throw 'MSI build failed' }
+          ./scripts/test_windows_msi.ps1
+          if ($LASTEXITCODE -ne 0) { throw 'MSI lifecycle test failed' }
+      - name: Generate SHA256 checksums
+        shell: pwsh
+        run: |
+          $files = @('KLAVA-Setup-x64.exe', 'KLAVA-x64.msi')
+          foreach ($file in $files) {
+            if (!(Test-Path "dist/$file")) { throw "Missing release asset $file" }
+          }
+          $lines = foreach ($file in $files) {
+            $hash = (Get-FileHash "dist/$file" -Algorithm SHA256).Hash.ToLowerInvariant()
+            "$hash  $file"
+          }
+          [System.IO.File]::WriteAllLines((Join-Path (Resolve-Path dist) 'SHA256SUMS.txt'), $lines)
+          Get-Content dist/SHA256SUMS.txt
+      - name: Upload installer candidates
+        uses: actions/upload-artifact@v4
+        with:
+          name: KLAVA-beta-candidates
+          path: |
+            dist/KLAVA-Setup-x64.exe
+            dist/KLAVA-x64.msi
+            dist/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 30
+
+  publish:
+    name: Publish explicitly approved public beta
+    needs: build-test
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Verify release tag does not already exist
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: v0.3.1-beta.1
+        run: |
+          if gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$TAG" >/dev/null 2>&1; then
+            echo "::error::Tag already exists. Releases are immutable by this workflow."
+            exit 1
+          fi
+      - uses: actions/download-artifact@v4
+        with:
+          name: KLAVA-beta-candidates
+          path: artifacts
+      - name: Publish GitHub pre-release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: v0.3.1-beta.1
+        run: |
+          gh release create "$TAG" \
+            artifacts/KLAVA-Setup-x64.exe \
+            artifacts/KLAVA-x64.msi \
+            artifacts/SHA256SUMS.txt \
+            --target "$GITHUB_SHA" \
+            --title "KLAVA $TAG — test release" \
+            --notes-file /dev/stdin \
+            --prerelease <<'NOTES'
+          KLAVA Windows beta for invited teacher testers.
+
+          EXE: choose Current User or All Users during installation.
+          MSI: administrator-managed, per-machine installation.
+          Do not install both formats on one computer; uninstall the earlier package first.
+          Existing user exercises under %LOCALAPPDATA%\KLAVA are preserved.
+          Includes 800×600 start window and uploaded illustrated welcome artwork.
+
+          Unsigned installers may show an Unknown Publisher warning.
+          The non-admin user acceptance case, cross-version MSI upgrade, and GPO/Intune rollout
+          have not been fully validated on physical school computers.
+          Please report issues without student-identifying information.
+          NOTES
