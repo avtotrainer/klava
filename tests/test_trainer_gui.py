@@ -110,3 +110,14 @@ def test_keyboard_follows_window_and_space_label_hides(tmp_path, monkeypatch):
         assert canvas.find_all()[-1] in canvas.find_withtag("cover")
     finally:
         root.destroy()
+
+
+def test_already_running_notice_closes_itself():
+    """M5: მეორე გაშვების შეტყობინება თავისით იხურება (ინსტალატორის CI ამას ელის)."""
+    import time
+
+    import main
+
+    started = time.monotonic()
+    main._notify_already_running(timeout_ms=200)
+    assert time.monotonic() - started < 5

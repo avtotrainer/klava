@@ -21,6 +21,9 @@ __version__ = "0.3.2-beta.1"
 ALREADY_RUNNING = "KLAVA უკვე გაშვებულია.\nგამოიყენეთ უკვე გახსნილი ფანჯარა."
 STARTUP_FAILED = "პროგრამის გაშვება ვერ მოხერხდა.\n{error}\n\nდეტალები: {log}"
 RUNTIME_FAILED = "პროგრამაში შეცდომა მოხდა.\n{error}\n\nდეტალები: {log}"
+# The notice closes itself: a duplicate launch must exit on its own (installer CI
+# checks this), and a learner should not be left with a dialog to dismiss.
+ALREADY_RUNNING_TIMEOUT_MS = 4000
 
 
 def main() -> None:
@@ -70,9 +73,19 @@ def _notepad() -> str:
     return str(PureWindowsPath(system_root, "System32", "notepad.exe"))
 
 
-def _notify_already_running() -> None:
-    """A second launch explains itself instead of silently doing nothing."""
-    messagebox.showinfo("KLAVA", ALREADY_RUNNING)
+def _notify_already_running(timeout_ms: int = ALREADY_RUNNING_TIMEOUT_MS) -> None:
+    """A second launch explains itself briefly, then exits without user action."""
+    root = tk.Tk()
+    root.title("KLAVA")
+    root.resizable(False, False)
+    root.attributes("-topmost", True)  # stay visible above the running trainer
+    tk.Label(root, text=ALREADY_RUNNING, font=("Arial", 12), justify="center",
+             padx=28, pady=18).pack()
+    tk.Button(root, text="OK", width=10, command=root.destroy).pack(pady=(0, 14))
+    for sequence in ("<Return>", "<Escape>"):
+        root.bind(sequence, lambda _event: root.destroy())
+    root.after(timeout_ms, root.destroy)
+    root.mainloop()
 
 
 def _write_error_log(exc: BaseException) -> Path | None:

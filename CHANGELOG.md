@@ -9,7 +9,7 @@
 - Release the single-instance lock explicitly on Windows so an immediate relaunch works.
 
 ### Changed
-- A second launch now says that KLAVA is already running instead of exiting silently.
+- A second launch now shows a short notice that KLAVA is already running (it closes itself after 4 seconds) instead of exiting silently.
 - Unexpected startup and runtime errors are shown in a dialog and logged to `%LOCALAPPDATA%\KLAVA\error.log` (the windowed EXE has no console).
 - The exercise editor shortcut starts Notepad by its full System32 path.
 
