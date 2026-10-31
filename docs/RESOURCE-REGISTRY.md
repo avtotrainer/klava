@@ -24,6 +24,8 @@
 
 | Single-instance startup handout | [01-main.md](01-main.md) | None | Georgian | v0.3.2-beta.1 / merged PR #19 | Public repository | canonical-only | 2026-10-30 |
 
+| Keyboard layout pedagogical discussion | [KEYBOARD-LAYOUT-PEDAGOGY-DISCUSSION.md](KEYBOARD-LAYOUT-PEDAGOGY-DISCUSSION.md) | [Slack #social discussion](https://aklava.slack.com/archives/C0CCF52UFU4/p1793458168962469) (discussion, not an identical mirror) | Georgian | Discussion 2026-10-31 | Public GitHub / Slack access per workspace | canonical-only | 2026-10-31 |
+
 ## Sync modes and boundaries
 
 - **canonical-only:** source exists, with no authorized or required mirror.
