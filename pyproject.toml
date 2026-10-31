@@ -1,5 +1,5 @@
 # KLAVA development-tool configuration.
-# Initial CI gate checks syntax-sensitive and correctness-focused Ruff rules.
+# CI gate: syntax, correctness, likely-bug and security Ruff rules.
 # Import/style modernization (I, UP, SIM) is a separate reviewed task;
 # this avoids unrelated changes to the working Trainer/UI baseline.
 
@@ -8,4 +8,9 @@ target-version = "py310"
 line-length = 100
 
 [tool.ruff.lint]
-select = ["E4", "E7", "E9", "F"]
+# B: likely bugs, ARG: unused arguments, S: security (bandit), BLE: blind except.
+select = ["E4", "E7", "E9", "F", "B", "ARG", "S", "BLE"]
+
+[tool.ruff.lint.per-file-ignores]
+# pytest uses assert; tests start the app in subprocesses and use temp paths.
+"tests/**" = ["S101", "S603", "S108"]

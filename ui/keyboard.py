@@ -207,6 +207,7 @@ class Keyboard:
             text="SPACE",
             font=("Arial", int(space_h * 0.35), "bold"),
             fill=self.TEXT_PALE,
+            tags=("keyboard",),
         )
 
         self.space_box = {
@@ -230,6 +231,28 @@ class Keyboard:
         outline = "#999999"
         fill = "#eeeeee"
         return outline, fill
+
+    # ----------------------------
+    def resize(self, width: int, height: int) -> None:
+        """Redraw for a new canvas size, keeping visibility and the current target."""
+        width, height = int(width), int(height)
+        if width <= 1 or height <= 1 or (width, height) == (int(self.width), int(self.height)):
+            return
+        items = self.canvas.find_withtag("keyboard")
+        state = self.canvas.itemcget(items[0], "state") if items else ""
+        target = self.current_target
+
+        self.canvas.delete("keyboard")
+        self.key_boxes = {}
+        self.space_box = None
+        self.current_target = None
+        self.width, self.height = width, height
+        self._draw_keys()
+
+        if state:
+            self.canvas.itemconfigure("keyboard", state=state)
+        if target is not None:
+            self.set_target(target)
 
     # ----------------------------
     def _set_key(self, key: str, fill: str, text_color: str):
