@@ -9,6 +9,7 @@ from typing import Optional
 
 from logic.config import Config
 from logic.exercise_library import available_exercises, choose_exercise, selected_exercise
+from logic.exercise_text import UnsupportedCharacterError, describe_character, normalize_lines
 from logic.resources import Resources, bundled_path, exercise_path, prepare_exercise_file
 
 from ui.canvas import Canvas
@@ -97,6 +98,9 @@ class Trainer:
             key_radius=k.getint("key_radius", fallback=18),
             key_gap_ratio=float(k.get("key_gap_ratio", fallback="0.12")),
         )
+        # The keyboard is first laid out for the screen; follow the real canvas size
+        # so windowed mode (fullscreen = false) and later resizes stay on screen.
+        self.ui.add_resize_listener(self.keyboard.resize)
 
         # ── MENU ───────────────────────────────────
         self.menu = AppMenu(
@@ -139,9 +143,10 @@ class Trainer:
         tk.Label(dialog, text=self.res.text("dialogs", "select_exercise", "Choose a KLV file")).pack(padx=24, pady=(20, 8))
         box = tk.Listbox(dialog, width=45, height=min(12, max(3, len(choices))), exportselection=False)
         box.pack(padx=24)
+        current = selected_exercise()
         for index, item in enumerate(choices):
             box.insert(tk.END, item.name)
-            if item == selected_exercise():
+            if item == current:
                 box.selection_set(index)
                 box.see(index)
 
@@ -240,7 +245,7 @@ class Trainer:
     # ==================================================
     # SECRET EXIT
     # ==================================================
-    def _secret_finish(self, event: Optional[tk.Event] = None) -> None:
+    def _secret_finish(self, _event: Optional[tk.Event] = None) -> None:
         if not self.training_active:
             return
 
@@ -283,18 +288,23 @@ class Trainer:
     # HELPERS
     # ==================================================
     def _load_sentences(self) -> list[str]:
-        path = exercise_path(
-            self.cfg.get("training", "sentence_file", fallback="data/sentences.txt")
-        )
+        """Read the selected KLV and reject it before kiosk mode if it cannot be finished."""
+        source = self.cfg.get("training", "sentence_file", fallback="data/sentences.txt")
+        path = exercise_path()
 
         try:
-            prepare_exercise_file(
-                self.cfg.get("training", "sentence_file", fallback="data/sentences.txt")
-            )
+            path = prepare_exercise_file(source)
             with open(path, encoding="utf-8-sig") as f:
-                lines = [line.strip().upper() for line in f if line.strip()]
+                lines = normalize_lines(f)
         except UnicodeError as e:
             msg = self.res.text("errors", "file_encoding").format(path=path)
+            raise RuntimeError(msg) from e
+        except UnsupportedCharacterError as e:
+            msg = self.res.text(
+                "errors",
+                "unsupported_character",
+                fallback="Line {line}: unsupported character {char}\n{path}",
+            ).format(line=e.line_number, char=describe_character(e.character), path=path)
             raise RuntimeError(msg) from e
         except OSError as e:
             msg = self.res.text("errors", "file_missing").format(path=path, err=str(e))

@@ -1,6 +1,6 @@
 """Process lifetime lock, independent of Tkinter and training rules."""
 
-from contextlib import contextmanager
+from contextlib import contextmanager, suppress
 import errno
 import os
 from pathlib import Path
@@ -36,5 +36,16 @@ def single_instance(path: Path | None = None):
             acquired = False
         else:
             acquired = True
-        # Closing the descriptor releases only our lock, including on exceptions.
-        yield acquired
+        try:
+            yield acquired
+        finally:
+            # POSIX releases flock on close. Windows also does, but only "eventually"
+            # (LockFile docs), so unlock explicitly to allow an immediate relaunch.
+            if acquired and os.name == "nt":
+                import msvcrt
+
+                # Closing still releases the lock if this fails; never mask the
+                # original exception from the application with an unlock error.
+                with suppress(OSError):
+                    lock.seek(0)
+                    msvcrt.locking(lock.fileno(), msvcrt.LK_UNLCK, 1)

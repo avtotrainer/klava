@@ -60,3 +60,53 @@ def test_real_widgets_session_and_reload(tmp_path, monkeypatch):
         dialog.destroy()
     finally:
         root.destroy()
+
+
+@pytest.mark.parametrize("size", [(1280, 800), (1366, 768), (800, 600)])
+def test_longest_seed_line_fits_window(size):
+    """H2: ყველა ასო ეკრანზე ჩანს 39-სიმბოლოიან ჩაშენებულ ხაზზეც."""
+    import configparser
+
+    from logic.exercise_text import normalize_lines
+    from logic.resources import bundled_path
+    from ui.canvas import Canvas
+
+    lines = normalize_lines(bundled_path("data/sentences.klv").read_text(encoding="utf-8-sig").splitlines())
+    longest = max(lines, key=len)
+    root = tk.Tk()
+    try:
+        root.geometry(f"{size[0]}x{size[1]}")
+        theme = configparser.ConfigParser()
+        theme.read(bundled_path("resources/themes/default.ini"), encoding="utf-8")
+        ui = Canvas(root, theme)
+        root.update()
+        ui.draw_sentence(list(longest))
+        root.update()
+        width = ui.canvas.winfo_width()
+        boxes = [ui.canvas.bbox(t) for t, ch in zip(ui.text_ids, longest, strict=True) if ch != " "]
+        assert min(b[0] for b in boxes) >= 0
+        assert max(b[2] for b in boxes) <= width
+    finally:
+        root.destroy()
+
+
+def test_keyboard_follows_window_and_space_label_hides(tmp_path, monkeypatch):
+    """M4 + L1: კლავიატურა ფანჯრის ზომას მიჰყვება; SPACE-ის წარწერა იმალება."""
+    monkeypatch.setenv("LOCALAPPDATA", str(tmp_path))
+    root = tk.Tk()
+    try:
+        trainer = Trainer(root)
+        root.update()
+        kb, canvas = trainer.keyboard, trainer.ui.canvas
+        assert canvas.itemcget(kb.space_box["text"], "state") == "hidden"
+        trainer.ui.show_keyboard()
+        kb.set_target("F")
+        root.geometry("1000x700")
+        root.update()
+        right = max(canvas.bbox(box["rect"])[2] for box in kb.key_boxes.values())
+        assert right <= canvas.winfo_width()
+        # The target survives the redraw and the cover stays above new items.
+        assert canvas.itemcget(kb.key_boxes["F"]["rect"], "fill") == kb.COLOR_TARGET
+        assert canvas.find_all()[-1] in canvas.find_withtag("cover")
+    finally:
+        root.destroy()

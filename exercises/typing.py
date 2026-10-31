@@ -3,9 +3,30 @@
 
 from __future__ import annotations
 
+import os
 import tkinter as tk
 
 from exercises.base import Exercise
+
+# Windows virtual-key codes for the letter keys are VK_A..VK_Z (0x41..0x5A) and
+# name the physical QWERTY position even when a Georgian or Russian layout is active.
+_VK_A, _VK_Z = 0x41, 0x5A
+
+
+def physical_key(event: tk.Event, platform: str | None = None) -> str:
+    """Return the uppercase key name, falling back to the Windows key position.
+
+    With a non-Latin layout Tk reports keysyms such as "Georgian_an"; the trainer
+    teaches key positions, so on Windows the virtual-key code identifies the letter.
+    """
+    key = str(event.keysym).upper()
+    if (len(key) == 1 and "A" <= key <= "Z") or key == "SPACE":
+        return key
+    platform = os.name if platform is None else platform
+    keycode = getattr(event, "keycode", None)
+    if platform == "nt" and isinstance(keycode, int) and _VK_A <= keycode <= _VK_Z:
+        return chr(keycode)
+    return key
 
 
 class TypingExercise(Exercise):
@@ -52,7 +73,7 @@ class TypingExercise(Exercise):
         if self._finished:
             return
 
-        key = str(event.keysym).upper()
+        key = physical_key(event)
         if key == "SPACE":
             key = " "
 

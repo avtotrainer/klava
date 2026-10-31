@@ -1,18 +1,23 @@
 """Assemble the exact portable payload; never copy an entire build directory."""
 from pathlib import Path
 import shutil
+import sys
 from zipfile import ZipFile, ZIP_DEFLATED
 
 
 ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from logic.exercise_text import normalize_lines  # noqa: E402 - needs ROOT on sys.path
 
 
 def package(root: Path = ROOT) -> Path:
     """Validate the seed, copy only user-facing files, and verify ZIP contents."""
     seed = root / "data/sentences.klv"
-    lines = [line.strip().upper() for line in seed.read_text(encoding="utf-8").splitlines()
-             if line.strip()]
-    if len(lines) < 2 or any(set(line) - set("ABCDEFGHIJKLMNOPQRSTUVWXYZ ") for line in lines):
+    # Same rule the trainer enforces at runtime (logic/exercise_text.py).
+    lines = normalize_lines(seed.read_text(encoding="utf-8-sig").splitlines())
+    if len(lines) < 2:
         raise ValueError("Seed requires at least two lines using supported letters and spaces")
     payload = root / "dist/KLAVA"
     payload.mkdir(parents=True, exist_ok=True)

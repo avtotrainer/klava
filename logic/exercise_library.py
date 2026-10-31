@@ -53,5 +53,8 @@ def choose_exercise(path: Path) -> Path:
     """Save only a validated file name; no arbitrary paths persisted."""
     target = resolve_choice(path.name)
     state = library_dir() / "selected-exercise.txt"
-    state.write_text(target.name, encoding="utf-8")
+    # Write then rename: a crash or full disk never leaves a half-written selection.
+    temporary = state.with_name(state.name + ".tmp")
+    temporary.write_text(target.name, encoding="utf-8")
+    os.replace(temporary, state)
     return target

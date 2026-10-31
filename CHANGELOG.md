@@ -1,5 +1,24 @@
 ## [Unreleased]
 
+### Fixed
+- Reject exercise lines with characters the on-screen keyboard cannot teach (punctuation, digits, TAB, non-Latin letters) before kiosk mode starts; the error names the line and character. Previously such a line could never be completed and trapped the learner in fullscreen mode.
+- Fit long exercise lines to the window by shrinking letter spacing and font together; the shipped 39-character lines no longer run off 1280–1600 px wide screens. The sentence re-flows when the window size changes.
+- Redraw the on-screen keyboard when the window size changes, so windowed mode (`fullscreen = false`) keeps every key visible.
+- Accept key presses on Windows while a Georgian (or other non-Latin) keyboard layout is active, using the physical letter-key position.
+- Hide the SPACE key label together with the rest of the keyboard.
+- Release the single-instance lock explicitly on Windows so an immediate relaunch works.
+
+### Changed
+- A second launch now says that KLAVA is already running instead of exiting silently.
+- Unexpected startup and runtime errors are shown in a dialog and logged to `%LOCALAPPDATA%\KLAVA\error.log` (the windowed EXE has no console).
+- The exercise editor shortcut starts Notepad by its full System32 path.
+
+### Internal
+- `TypingEngine`: optional `lock_duration` auto-release (default unchanged), bounded key history, monotonic clock.
+- Shared exercise character rules for the trainer and `scripts/package_windows.py`; colour format validation for the keyboard model.
+- Atomic save of the selected exercise; welcome artwork decoded once and rescaled after resizing settles.
+- `requirements.txt` / `requirements-dev.txt`, Dependabot for pip and GitHub Actions, actions pinned to commit SHAs (except the release workflow), Ruff `B`, `ARG`, `S`, `BLE` rules.
+
 ## [0.3.2-beta.1] — 2026-10-30
 
 ### Fixed
