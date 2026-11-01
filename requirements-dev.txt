@@ -1,0 +1,4 @@
+# Test and lint tools; versions match the Windows CI workflows.
+-r requirements.txt
+pytest==8.4.2
+ruff==0.14.2

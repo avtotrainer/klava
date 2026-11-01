@@ -58,11 +58,15 @@ def test_bundled_paths_use_module_location(tmp_path, monkeypatch):
 def test_portable_normalization_and_bom(portable):
     trainer, path = portable
     path.write_text("  a b  \n\n b a \n", encoding="utf-8-sig")
-    assert exercise_path("ignored.txt") == path
+    assert exercise_path() == path
     assert trainer._load_sentences() == ["A B", "B A"]
 
 
-@pytest.mark.parametrize("contents", [None, b"", b" \n\n", b"\xff\xfe\x00\x00", b"A\n"])
+@pytest.mark.parametrize("contents", [
+    None, b"", b" \n\n", b"\xff\xfe\x00\x00", b"A\n",
+    # Characters the on-screen keyboard cannot teach would trap the learner in kiosk mode.
+    b"A, B\nB\n", b"A\nB 2\n", b"A\tB\nB\n", "A\n\u10d0\n".encode(),
+])
 def test_invalid_exercises_leave_session_inactive_and_file_unchanged(portable, monkeypatch, contents):
     trainer, path = portable
     if contents is not None:
@@ -87,6 +91,24 @@ def test_invalid_exercises_leave_session_inactive_and_file_unchanged(portable, m
     path.write_text("A\nB\n", encoding="utf-8")
     trainer.start_training()
     assert trainer.training_active
+
+
+@pytest.mark.parametrize(("contents", "line", "char"), [
+    ("A\nHI, YOU\n", 2, "','"),
+    ("\n\nA\tB\n", 3, "U+0009"),
+    ("\u10d2\u10d0\n", 1, "'\u1c92'"),  # Georgian is uppercased to Mtavruli first
+])
+def test_unsupported_character_error_names_line_and_character(
+    portable, monkeypatch, contents, line, char
+):
+    trainer, path = portable
+    path.write_text(contents, encoding="utf-8")
+    errors = Mock()
+    monkeypatch.setattr("trainer.messagebox.showerror", errors)
+    trainer.start_training()
+    message = errors.call_args.args[1]
+    assert str(line) in message and char in message and str(path) in message
+    assert not trainer.training_active
 
 
 def test_session_completion_and_reload(portable):

@@ -6,9 +6,12 @@ from __future__ import annotations
 from configparser import ConfigParser, SectionProxy
 from pathlib import Path
 import json
+import re
 import sys
 
 from logic.exercise_library import DEFAULT_NAME, library_dir, selected_exercise
+
+HEX_COLOR = re.compile(r"#[0-9a-fA-F]{6}")
 
 
 def bundled_path(path: str) -> Path:
@@ -17,9 +20,12 @@ def bundled_path(path: str) -> Path:
     return Path(__file__).resolve().parent.parent / path
 
 
+def exercise_path() -> Path:
+    """Return the user's selected KLV exercise, independent of install scope.
 
-def exercise_path(source_path: str) -> Path:
-    """Return the user's selected KLV exercise, independent of install scope."""
+    The configured source file only seeds the library (see prepare_exercise_file);
+    the exercise in use is always the user's current selection.
+    """
     return selected_exercise()
 
 
@@ -96,6 +102,10 @@ class Resources:
     def _validate_keyboard_model(self, model: dict) -> None:
         if "groups" not in model or "colors" not in model:
             raise ValueError("Keyboard model must contain 'groups' and 'colors' keys")
+        # Keyboard._lighten() mixes channels arithmetically, so only #rrggbb works.
+        for finger, color in model["colors"].items():
+            if not HEX_COLOR.fullmatch(str(color)):
+                raise ValueError(f"Keyboard color for {finger!r} must be #rrggbb, got {color!r}")
 
     # ----------------------------
     def text(self, section: str, key: str, fallback: str = "") -> str:

@@ -41,7 +41,7 @@ def test_wrong_key_does_not_advance():
 
 def test_wrong_streak_locks_until_reset(monkeypatch):
     """ზედიზედ შეცდომები ააქტიურებს არსებული guard-ის დაბლოკვას."""
-    monkeypatch.setattr(engine_module.time, "time", lambda: 100.0)
+    monkeypatch.setattr(engine_module.time, "monotonic", lambda: 100.0)
     engine = TypingEngine("A", wrong_streak_limit=3, sweep_required=99)
 
     for key in ("X", "Y", "Z"):
@@ -59,7 +59,7 @@ def test_wrong_streak_locks_until_reset(monkeypatch):
 
 def test_fast_wrong_keys_trigger_sweep_guard(monkeypatch):
     """მოკლე ინტერვალში ბევრი შეცდომა ააქტიურებს sweep guard-ს."""
-    monkeypatch.setattr(engine_module.time, "time", lambda: 100.0)
+    monkeypatch.setattr(engine_module.time, "monotonic", lambda: 100.0)
     engine = TypingEngine(
         "A",
         wrong_streak_limit=99,
@@ -72,3 +72,42 @@ def test_fast_wrong_keys_trigger_sweep_guard(monkeypatch):
 
     assert engine.state == engine.STATE_DIMMING
     assert engine.pos == 0
+
+
+def test_lock_releases_after_configured_duration(monkeypatch):
+    """lock_duration-ის მითითებისას დაბლოკვა დროის გასვლის შემდეგ იხსნება."""
+    clock = [100.0]
+    monkeypatch.setattr(engine_module.time, "monotonic", lambda: clock[0])
+    engine = TypingEngine("A", wrong_streak_limit=3, sweep_required=99, lock_duration=1.5)
+
+    for key in ("X", "Y", "Z"):
+        engine.hit(key)
+    assert engine.is_locked() is True
+
+    clock[0] += 1.4
+    assert engine.is_locked() is True
+
+    clock[0] += 0.2
+    assert engine.is_locked() is False
+    assert engine.hit("A") is True
+
+
+def test_lock_without_duration_keeps_existing_behavior(monkeypatch):
+    """ნაგულისხმევად (lock_duration=None) დაბლოკვა თავისით არ იხსნება."""
+    clock = [100.0]
+    monkeypatch.setattr(engine_module.time, "monotonic", lambda: clock[0])
+    engine = TypingEngine("A", wrong_streak_limit=3, sweep_required=99)
+
+    for key in ("X", "Y", "Z"):
+        engine.hit(key)
+    clock[0] += 3600
+    assert engine.is_locked() is True
+
+
+def test_key_history_is_bounded():
+    """გრძელ სესიაზე შეცდომების ისტორია მეხსიერებას შეუზღუდავად არ ზრდის."""
+    engine = TypingEngine("A" * 1000, sweep_required=8)
+    for _ in range(1000):
+        assert engine.hit("A") is True
+    assert engine.finished is True
+    assert len(engine._key_history) == 32

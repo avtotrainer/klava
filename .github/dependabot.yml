@@ -1,0 +1,12 @@
+# Weekly update PRs for pinned Python packages and GitHub Actions.
+# Nothing is merged automatically; every update goes through normal review and CI.
+version: 2
+updates:
+  - package-ecosystem: pip
+    directory: /
+    schedule:
+      interval: weekly
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

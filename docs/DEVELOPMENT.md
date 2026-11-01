@@ -31,8 +31,9 @@
 ## კოდის სტილი და კონტროლი
 
 - Python: PEP 8, საჭირო docstring-ები PEP 257-ის სულისკვეთებით, საგანმანათლებლო კომენტარები რთულ ადგილებში.
-- ტესტირება: `python -m pytest -q`.
-- სტატიკური ანალიზი: `ruff check .`.
+- დამოკიდებულებები: `python -m pip install -r requirements-dev.txt` (runtime: `requirements.txt`; ვერსიები ფიქსირებულია, განახლებებს Dependabot სთავაზობს PR-ით).
+- ტესტირება: `python -m pytest -q`; რეალური Tk ტესტები: `KLAVA_GUI_TEST=1 python -m pytest -q tests/test_trainer_gui.py`.
+- სტატიკური ანალიზი: `ruff check .` (წესები: `E4 E7 E9 F B ARG S BLE`, იხ. `pyproject.toml`).
 - სინტაქსი: `python -m compileall -q main.py trainer.py logic ui exercises`.
 
 `pytest` და `ruff` განვითარების ინსტრუმენტებია, `tkinter` — პროგრამის GUI დამოკიდებულება. Nix-ის `flake.nix`-ის განვითარების გარემო მოიცავს pytest-სა და Ruff-ს. CI ასევე აყენებს მათ დამოუკიდებლად.

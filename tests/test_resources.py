@@ -46,3 +46,19 @@ def test_resources_reject_missing_language():
             language="nonexistent-language",
             theme_name="default",
         )
+
+
+def test_keyboard_colors_must_be_six_digit_hex(tmp_path):
+    """Keyboard._lighten() მხოლოდ #rrggbb-ს ითვლის; სხვა ფორმატი ადრევე უარიყოფა."""
+    import json
+    import shutil
+
+    root = Path(__file__).resolve().parents[1]
+    base = tmp_path / "resources"
+    shutil.copytree(root / "resources", base)
+    model_path = base / "keyboard" / "fingers.json"
+    model = json.loads(model_path.read_text(encoding="utf-8"))
+    model["colors"]["left_pinky"] = "red"
+    model_path.write_text(json.dumps(model), encoding="utf-8")
+    with pytest.raises(ValueError, match="left_pinky"):
+        Resources(base_dir=str(base), language="ka", theme_name="default")

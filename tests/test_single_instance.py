@@ -92,15 +92,19 @@ def test_duplicate_does_not_construct_gui(monkeypatch, tmp_path):
 
     monkeypatch.setenv("LOCALAPPDATA", str(tmp_path))
     monkeypatch.setattr(sys, "argv", ["KLAVA.exe"])
-    root = Mock()
+    run = Mock()
     trainer = Mock()
-    monkeypatch.setattr(main.tk, "Tk", root)
+    notify = Mock()
+    monkeypatch.setattr(main, "_run_app", run)
     monkeypatch.setattr(main, "Trainer", trainer)
+    monkeypatch.setattr(main, "_notify_already_running", notify)
     with single_instance() as acquired:
         assert acquired
         main.main()
-    root.assert_not_called()
+    run.assert_not_called()
     trainer.assert_not_called()
+    # A second launch tells the user why nothing new opened.
+    notify.assert_called_once()
 
 
 def test_editor_still_available_while_trainer_runs(monkeypatch, tmp_path):
@@ -141,7 +145,11 @@ def test_guard_covers_entire_app_and_releases_after_failure(monkeypatch, tmp_pat
         assert probe(path) == "0"
         raise RuntimeError("GUI startup failed")
 
+    report = Mock()
     monkeypatch.setattr(main, "_run_app", run)
-    with pytest.raises(RuntimeError):
-        main.main()
+    monkeypatch.setattr(main, "_report_startup_failure", report)
+    main.main()
+    # Unexpected failures are reported (the EXE has no console) and the lock is freed.
+    report.assert_called_once()
+    assert isinstance(report.call_args.args[0], RuntimeError)
     assert probe(path) == "1"
