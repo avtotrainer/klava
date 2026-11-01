@@ -145,15 +145,26 @@ class Canvas:
         self.canvas.tag_raise("cover")
 
     def show_cover(self, text: str) -> None:
-        self._welcome_visible = False
-        self.canvas.itemconfigure(self.cover_image, state="hidden")
-        self.canvas.itemconfigure(self.cover_text, state="normal")
-        self.canvas.itemconfig(self.cover_text, text=text)
-        self.canvas.itemconfigure("cover", state="normal")
-        self.canvas.tag_raise("cover")
+        """Show a text-only cover (e.g. "training finished") without the welcome artwork."""
+        self._stop_welcome()
+        self.canvas.itemconfigure(self.cover_text, text=text)
+        # Name items explicitly: the "cover" tag also matches the artwork, which
+        # would reappear (at a stale size) above the text.
+        for item in (self.cover_rect, self.cover_text):
+            self.canvas.itemconfigure(item, state="normal")
+            self.canvas.tag_raise(item)
 
     def hide_cover(self) -> None:
+        self._stop_welcome()
         self.canvas.itemconfigure("cover", state="hidden")
+
+    def _stop_welcome(self) -> None:
+        """Hide the artwork and cancel a pending rescale so it is not redrawn off-screen."""
+        self._welcome_visible = False
+        if self._welcome_job is not None:
+            self.canvas.after_cancel(self._welcome_job)
+            self._welcome_job = None
+        self.canvas.itemconfigure(self.cover_image, state="hidden")
 
     # ------------------------------
     def clear(self) -> None:

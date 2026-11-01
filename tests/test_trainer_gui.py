@@ -121,3 +121,25 @@ def test_already_running_notice_closes_itself():
     started = time.monotonic()
     main._notify_already_running(timeout_ms=200)
     assert time.monotonic() - started < 5
+
+
+def test_finished_cover_shows_text_not_welcome_artwork(tmp_path, monkeypatch):
+    """დასრულების ეკრანზე ჩანს ტექსტი; მისასალმებელი სურათი არ ფარავს მას."""
+    monkeypatch.setenv("LOCALAPPDATA", str(tmp_path))
+    root = tk.Tk()
+    try:
+        trainer = Trainer(root)
+        root.update()
+        trainer.start_training()
+        root.geometry("1200x800")  # like entering fullscreen: a resize during training
+        root.update()
+        trainer._secret_finish()
+        root.update()
+        ui, canvas = trainer.ui, trainer.ui.canvas
+        assert canvas.itemcget(ui.cover_image, "state") == "hidden"
+        assert canvas.itemcget(ui.cover_text, "state") == "normal"
+        assert canvas.itemcget(ui.cover_text, "text") == trainer.res.text("cover", "finished")
+        assert canvas.find_all()[-1] == ui.cover_text
+        assert ui._welcome_job is None
+    finally:
+        root.destroy()

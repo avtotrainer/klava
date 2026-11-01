@@ -6,6 +6,7 @@
 - Redraw the on-screen keyboard when the window size changes, so windowed mode (`fullscreen = false`) keeps every key visible.
 - Accept key presses on Windows while a Georgian (or other non-Latin) keyboard layout is active, using the physical letter-key position.
 - Hide the SPACE key label together with the rest of the keyboard.
+- Show the "training finished" message after a session; the welcome artwork (sometimes at the old fullscreen size) no longer covers it.
 - Release the single-instance lock explicitly on Windows so an immediate relaunch works.
 
 ### Changed
